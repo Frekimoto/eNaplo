@@ -1,0 +1,29 @@
+<?php
+$_PREFIX="{PREFIX}";
+$_SYSTEM_USERS_TABLE=$_PREFIX."users";
+$_SYSTEM_LESSONS_TABLE=$_PREFIX."lessons";
+$_SYSTEM_GARDES_TABLE=$_PREFIX."gardes";
+$_SYSTEM_CLASSES_TABLE=$_PREFIX."classes";
+$_SYSTEM_TEACHES_TABLE=$_PREFIX."teaches";
+$_SYSTEM_TIMETABLE_TABLE=$_PREFIX."timetable";
+$_SYSTEM_DELAY_TABLE=$_PREFIX."certificates";
+$_START_MONTH=9;
+$_END_MONTH=7;
+setlocale(LC_ALL,'hungarian');
+$connection = @mysql_connect("{HOST}", "{USERNAME}", "{PASSWORD}");
+if (!$connection) die('A MySQL kapcsolódás sikertelen volt. Hiba: '.mysql_error());
+$database = @mysql_select_db("{DATABASE}", $connection);
+if (!$database) die('Az adatbázis kiválasztása sikertelen volt. Hiba: '.mysql_error());
+if(mysql_num_rows(mysql_query("SHOW TABLES LIKE '$_SYSTEM_USERS_TABLE'"))!=1) die("Nem találtam az azonosító táblázatot. ($_SYSTEM_USERS_TABLE)");
+mysql_query("SET NAMES 'utf8'");
+mysql_query("SET CHARACTER SET 'utf8'");
+
+//Kallkuláció
+if(date("m")<$_START_MONTH) {
+    $_FROM_DATE=strtotime((date("Y")-1)."-$_START_MONTH-1");
+    $_TO_DATE=strtotime(date("Y")."-$_END_MONTH-1");
+    }else{
+    $_FROM_DATE=strtotime(date("Y")."-$_START_MONTH-1");
+    $_TO_DATE=strtotime((date("Y")+1)."-$_END_MONTH-1");
+}
+?>

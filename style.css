@@ -1,0 +1,38 @@
+html, body
+{
+position: relative;
+width: 100%;
+display: block;
+text-align: center;
+}
+
+.login
+{
+white-space: nowrap;
+display: inline-block;
+margin-left: auto;
+margin-right: auto;
+}
+
+.login-error
+{
+border-color: red;
+border-width: 2;
+border-style: dotted;
+}
+#Login_Error
+{
+color: red;
+border-color: red;
+border-width: 1px;
+border-style: solid;
+display: none;
+}
+.Error
+{
+color: red;
+}
+.EditTd
+{
+display: none; /* none: Jegyszerkeztõ elrejtése alapértelmezetten / block: Jegyszerkeztõ alapértelmezett megjelenítése */
+}
