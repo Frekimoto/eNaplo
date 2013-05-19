@@ -96,10 +96,12 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."teaches` (
 DROP TABLE IF EXISTS `".$Prefix."timetable`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."timetable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `class` int(11) NOT NULL,
-  `tid` int(11) NOT NULL,
-  `type` int(11) NOT NULL,
-  `parent` int(11) NOT NULL DEFAULT '0',
+  `class` bigint(11) NOT NULL,
+  `uid` bigint(11) NOT NULL,
+  `tid` bigint(11) NOT NULL,
+  `type` bigint(11) NOT NULL,
+  `lesson` bigint(11) NOT NULL,
+  `parent` bigint(11) NOT NULL DEFAULT '0',
   `description` varchar(32) NOT NULL,
   `day` enum('1','2','3','4','5','6','7') NOT NULL DEFAULT '1',
   `number` int(11) NOT NULL,
