@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."users` (
   `username` varchar(32) NOT NULL,
   `real_name` varchar(32) NOT NULL,
   `password` varchar(100) NOT NULL,
+  `om_id` bigint(11) NULL DEFAULT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `class` bigint(20) NOT NULL,
   `parent` bigint(20) NOT NULL,
@@ -123,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."users` (
 	$SQL=explode(';',$SQL);
 	foreach($SQL as $index => $sql)
 		mysql_query($sql);    
-   echo mysql_query("INSERT `".$Prefix."users` (`id`, `username`, `real_name`, `password`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($_POST["UN"])."', '".mysql_real_escape_string($_POST["RL"])."', '".sha1(md5($_POST["PA"]))."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '0', '0', '4')");
+   echo mysql_query("INSERT `".$Prefix."users` (`id`, `username`, `real_name`, `password`, `om_id`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($_POST["UN"])."', '".mysql_real_escape_string($_POST["RL"])."', '".sha1(md5($_POST["PA"]))."', NULL, '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '0', '0', '4')");
     $_SESSION["ID"]=mysql_result(mysql_query("SELECT * FROM `".$Prefix."users` WHERE username='".mysql_real_escape_string($_POST["UN"])."'"), 0, "id");
     exit;
     }
