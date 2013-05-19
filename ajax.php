@@ -294,16 +294,16 @@ switch((int)$_POST["TYPE"])
                                 else
                                 foreach($HEAD as $text)
                                     echo "<td>".ucfirst($text)."</td>";
-                            if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)
-                                {
-                                $HALF=1;
-                                $END=1;
-                                }else{
-                                $HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND type='8'"));
-                                $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND class='".$ID."' AND type='9'"));
-                                }
+							$HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND type='8'"));
+                               $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND class='".$ID."' AND type='9'"));
+                            if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) {
+                                $HALF+=1;
+                                $END+=1;
+                            }
                             if($HALF!=0 or $END!=0)
                                 echo '<td rowspan="100%" width="10px"></td>'.($HALF==0?"":"<td>Félév</td>").($END==0?"":"<td>Év vége</td>");
+							if(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) and $END-1>0 and $HALF-1>0)
+								echo '<td rowspan="100%" width="10px"></td><td>Bizonyítvány</td>';
                             ?>
                             <td rowspan="100%" width="10px"></td>
                             <td class="EditTd">
@@ -374,6 +374,8 @@ switch((int)$_POST["TYPE"])
                                 }
                             $NUMBER=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9'"))>1?1:0;
                             echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
+							if(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) and $END-1>0 and $HALF-1>0)
+								echo (mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'")) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'")))?"<td><a href='ajax.php?id=".$row["uid"]."&print' class='Print'>Nyomtat</a></td>":"<td>Lezárást igényel</td>";
                             ?>
                             <td class="EditTd">
                                 <select class="Type" name="<?php echo $row["uid"]; ?>_TYPE">
@@ -991,7 +993,7 @@ switch((int)$_POST["TYPE"])
                     $_POST["Data7"]="0000-00-00";
                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
                     {
-                    echo -12;
+                    echo -1;
                     exit;
                     }
                 if($_POST["Type"]=="1")
@@ -1024,7 +1026,7 @@ switch((int)$_POST["TYPE"])
             }else
             echo -1;
             }else
-            echo -1;                
+            echo -1;
         break;
     case 14: //Load garde editor
      if($_SESSION["ID"]==-1)
