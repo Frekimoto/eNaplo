@@ -51,7 +51,7 @@ if($_SESSION["ID"]!=-1)
         <link href="favicon.ico" rel="icon" type="image/x-icon" />
         <script src="jquery-1.8.3.js"></script>
         <script src="jquery-ui-1.9.2.js"></script>
-		<script src="jquery.printPage.js" type="text/javascript"></script>
+		<script src="jquery.printPage.js" type="text/javascript"></script>		
         <script type="text/javascript">
         $(document).ready(function()
             {
@@ -65,9 +65,10 @@ if($_SESSION["ID"]!=-1)
             <?php }else{
             if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
                 echo '$.post(\'ajax.php\',{TYPE: 3, '.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$_SESSION["CLASS"]."'"))>0?'Type: '.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":"")),0,"id").', ':'').'Id: '.($_SESSION["CLASS"]!=0?$_SESSION["CLASS"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC"),0,"id")).'},function(data){$(\'#Gardes\').html(data);});';
-            if($_SESSION["RANK"]==4)
-                echo '$.post(\'ajax.php\',{TYPE: 9},function(data){$(\'#User_Content\').html(data);});';
-            ?>
+            if($_SESSION["RANK"]==4) { ?>
+            $.post('ajax.php',{TYPE: 9},function(data){$('#User_Content').html(data);});
+            Timetable_Input();
+            <?php } ?>
             NewUserTypes=new Array(1,"Student","Parent","Teacher","Administrator");
 			$(".Print").printPage({
 			      attr : "href",
@@ -119,16 +120,48 @@ if($_SESSION["ID"]!=-1)
                     }
                 }
             <?php }else{ ?>
-                function Message(Message,Delay,Div,Color)
-                    {
-                    if(Color!=null)
-                        Color='<font color="'+Color+'">';
-                            else
-                        Color='<font>';
-                    $("#"+Div).html('<p>'+Color+Message+'</font></p>').fadeIn(1000).delay(Delay-2000).fadeOut(1000,function(){$(this).empty();});
-                    }
-            $.post('ajax.php',{TYPE: 12, Type: <?php $CLASS=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".mysql_real_escape_string($_SESSION["CLASS"])."'")); echo $_SESSION["RANK"]==3?1:($CLASS!=1?2:3); ?>, Id: <?php  echo $CLASS!=1?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE,$_SYSTEM_TIMETABLE_TABLE WHERE $_SYSTEM_CLASSES_TABLE.id=$_SYSTEM_TIMETABLE_TABLE.class AND enabled='1' ORDER BY $_SYSTEM_CLASSES_TABLE.name ASC"),0,"$_SYSTEM_CLASSES_TABLE.id"):$_SESSION["ID"]; ?>},function(data){$('#DTimetable').html(data);});
-            <?php } ?>
+                function Message(Message,Delay,Div,Color) {
+                    if(Delay<=0)
+                        $("#"+Div).html('<p>'+(Color!=null?'<font color="'+Color+'">'+Message+'</font>':Message)+'</p>').fadeIn(1000);
+                        else
+                        $("#"+Div).html('<p>'+(Color!=null?'<font color="'+Color+'">'+Message+'</font>':Message)+'</p>').fadeIn(1000).delay(Delay-2000).fadeOut(1000,function(){$(this).empty();});
+                }
+            $.post('ajax.php',{TYPE: 12, Type: <?php $CLASS=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_SESSION["CLASS"])."'")); echo $_SESSION["RANK"]==3?1:($CLASS!=1?2:3); ?>, Id: <?php  echo ($CLASS>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE"))==0)?$_SESSION["ID"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE,$_SYSTEM_TIMETABLE_TABLE WHERE $_SYSTEM_CLASSES_TABLE.id=$_SYSTEM_TIMETABLE_TABLE.class AND enabled='1' ORDER BY $_SYSTEM_CLASSES_TABLE.name ASC"),0,"$_SYSTEM_CLASSES_TABLE.id"); ?>},function(data){$('#DTimetable').html(data);});
+            <?php if($_SESSION["RANK"]==4){ ?>
+            function Timetable_Input() {
+                Message('',0,'Timetable_Error');
+                $('.Bracket,#Timetable_Manager_Content,#TStudent,#TClass').show();
+                
+                if($('#NewT_Class option').length==1 && $('#NewT_Student option').length==1) {
+                   $('#Timetable_Manager_Content').hide();
+                   Message('Adjon meg egy osztályt, vagy egy tanulót.',0,'Timetable_Error');
+                   return false;  
+                }
+                if($('#NewT_Class option').length==1)
+                    $('.Bracket,#TClass').hide();
+
+                if($('#NewT_Student option').length==1)
+                    $('.Bracket,#TStudent').hide();
+
+                if($('#NewT_Lesson option').length==1) {
+                    $('#Timetable_Manager_Content').hide();
+                        Message('Adjon meg egy tanórát.',0,'Timetable_Error');
+                        return false;
+                }
+                if($('#NewT_Lesson option').length==1) {
+                    $('#Timetable_Manager_Content').hide();
+                        Message('Adjon meg egy tanórát.',0,'Timetable_Error');
+                        return false;
+                }
+
+                if($('#NewT_Teacher option').length==1) {
+                    $('#Timetable_Manager_Content').hide();
+                        Message('Adjon meg egy tanárt.',0,'Timetable_Error');
+                        return false;
+                }
+            return true;
+            }
+            <?php } } ?>
         </script>
     </head>
         <?php if($_SESSION["ID"]==-1) { ?>
@@ -213,7 +246,7 @@ if($_SESSION["ID"]!=-1)
                          <label for="New_Class">Osztály:</label> <input type="Text" placeholder="Osztály" id="New_Class" />
                          <label for="Edit_Class_Enabled">Látható</label><input type="radio" name="Edit_Class_Status" id="Edit_Class_Enabled" value="1" checked="checked" />
                          <label for="Edit_Class_Disabled">Rejtett</label><input type="radio" name="Edit_Class_Status" id="Edit_Class_Disabled" value="0" />
-                         <input type="Button" value="Hozzáadás" onClick="if($('#New_Class').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Class_Error','red'); else $.post('ajax.php',{TYPE: 5, Text: $('#New_Class').val(), Type: 1, Data: +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')},function(data){if(data=='-1')Message('Hiba!',5000,'Class_Error','red'); else if(data=='-2')Message('Ilyen osztály már létezik.',5000,'Class_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!',5000,'Class_Error','red'); else{Classes[$('#Edit_Class option').length]=+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'); $('#Edit_Class,#Delete_Classes,#NewT_Class'+(Classes[$('#Edit_Class').prop('selectedIndex')]?',#Class_To_Teacher,#Class_To_Student':'')).append($('<option></option>').attr('value', data).text($('#New_Class').val())); $('#New_Class').val(''); if($('#Delete_Classes option').length==1)$('#Classes_Div').show('fast'); Message('Új osztály hozzáadva',5000,'Class_Error','green');}});"/><br />
+                         <input type="Button" value="Hozzáadás" onClick="if($('#New_Class').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Class_Error','red'); else $.post('ajax.php',{TYPE: 5, Text: $('#New_Class').val(), Type: 1, Data: +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')},function(data){if(data=='-1')Message('Hiba!',5000,'Class_Error','red'); else if(data=='-2')Message('Ilyen osztály már létezik.',5000,'Class_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!',5000,'Class_Error','red'); else{Classes[$('#Edit_Class option').length]=+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'); if(Classes[$('#Edit_Class option').length])$('.Class').show('fast'); $('#Edit_Class,#Delete_Classes,#NewT_Class'+(+$('input:radio[name=\'Edit_Class_Status\']').prop('checked')?',#Class_To_Teacher optgroup,#Class_To_Student optgroup':'')).append($('<option></option>').attr('value', data).text($('#New_Class').val())); $('#New_Class').val(''); if($('#Delete_Classes option').length==1)$('#Classes_Div').show('fast'); Message('Új osztály hozzáadva',5000,'Class_Error','green'); Timetable_Input();}});"/><br />
                          <div id="Classes_Div"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))==0?" style=\"display: none;\"":""; ?>>
                              <select id="Edit_Class" onChange="$('input:radio[name=\'Edit_Class_Status\'][value=\''+Classes[$(this).prop('selectedIndex')]+'\']').prop('checked', true); if($(':selected',this).val()!='-'){$('#New_Class').val($('#Edit_Class option:selected').text()); $('#New_Class_Button').attr('disabled', false);}else $('#New_Class_Button').attr('disabled', true);">
                                 <option value="-"> - </option>
@@ -223,18 +256,16 @@ if($_SESSION["ID"]!=-1)
                                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC");
                                 while($row=mysql_fetch_array($ADAT)) {
                                    $Classes.="<option value='".$row["id"]."'>".$row["name"]."</option>\n";
-                                   if($Default!="")
-                                        $Default.=",";
-                                    $Default.=$row["enabled"];
+                                    $Default.=",".$row["enabled"];
                                 }
-                                echo $Classes."<script>Classes = new Array(1,".$Default.");</script>";
+                                echo $Classes."<script>Classes = new Array(1".$Default.");</script>";
                                 ?>
                             </select>
-                            <input type="Button" value="Módosítás" id="New_Class_Button" onClick="if($('#New_Class').val().length==0)Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else if($('#New_Class').val()==$('#Edit_Class :selected').text() && Classes[$('#Edit_Class').prop('selectedIndex')]==+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'))Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Class_Error','red'); else $.post('ajax.php',{TYPE: 6, Id: $('#Edit_Class :selected').val(), Text: $('#New_Class').val(), Type: 1, Data: +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')},function(data){if(data=='-2')Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Class_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!.',5000,'Class_Error','red'); else if(data=='1'){if(Classes[$('#Edit_Class').prop('selectedIndex')]==1 && +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')==0) $('#Class_To_Student option[value=\''+($('#Edit_Class :selected').val())+'\'],#Class_To_Teacher option[value=\''+($('#Edit_Class :selected').val())+'\']').remove(); else if(Classes[$('#Edit_Class').prop('selectedIndex')]==0 && +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')==1)$('#Class_To_Teacher optgroup,#Class_To_Student optgroup').append($('<option></option>').attr('value', $('#Edit_Class :selected').val()).text($('#New_Class').val())); $('#Edit_Class option[value=\''+$('#Edit_Class :selected').val()+'\'],#Delete_Classes option[value=\''+$('#Edit_Class :selected').val()+'\'],#NewT_Class option[value=\''+$('#Edit_Class :selected').val()+'\']').text($('#New_Class').val()); Classes[$('#Edit_Class').prop('selectedIndex')]=+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'); Message('Módosítva!',5000,'Class_Error','green');}else Message('Hiba!',5000,'Class_Error','red');});" disabled="disabled"/><br />
+                            <input type="Button" value="Módosítás" id="New_Class_Button" onClick="if($('#New_Class').val().length==0)Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else if($('#New_Class').val()==$('#Edit_Class :selected').text() && Classes[$('#Edit_Class').prop('selectedIndex')]==+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'))Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Class_Error','red'); else $.post('ajax.php',{TYPE: 6, Id: $('#Edit_Class :selected').val(), Text: $('#New_Class').val(), Type: 1, Data: +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')},function(data){if(data=='-2')Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Class_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!.',5000,'Class_Error','red'); else if(data=='1'){if(Classes[$('#Edit_Class').prop('selectedIndex')]==1 && +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')==0){$('#Class_To_Student option[value=\''+($('#Edit_Class :selected').val())+'\'],#Class_To_Teacher option[value=\''+($('#Edit_Class :selected').val())+'\']').remove(); if($('#Class_To_Teacher option').length==1)$('.Class').hide();} else if(Classes[$('#Edit_Class').prop('selectedIndex')]==0 && +$('input:radio[name=\'Edit_Class_Status\']').prop('checked')==1){$('#Class_To_Teacher optgroup,#Class_To_Student optgroup').append($('<option></option>').attr('value', $('#Edit_Class :selected').val()).text($('#New_Class').val())); $('.Class').show();} $('#Edit_Class option[value=\''+$('#Edit_Class :selected').val()+'\'],#Delete_Classes option[value=\''+$('#Edit_Class :selected').val()+'\'],#NewT_Class option[value=\''+$('#Edit_Class :selected').val()+'\']').text($('#New_Class').val()); Classes[$('#Edit_Class').prop('selectedIndex')]=+$('input:radio[name=\'Edit_Class_Status\']').prop('checked'); Message('Módosítva!',5000,'Class_Error','green');}else Message('Hiba!',5000,'Class_Error','red');});" disabled="disabled"/><br />
                             <select id="Delete_Classes" onChange="if($('#Delete_Classes :selected').length==0)$('#Delete_Class').val('Válasszon elemet!').attr('disabled', true); else $('#Delete_Class').val($('#Delete_Classes :selected').length+' elem törlése').attr('disabled', false);" multiple="multiple">
                                 <?php echo $Classes; ?>
                             </select><br />
-                            <input type="Button" id="Delete_Class" value="Válasszon elemet!" onClick="if($('#Delete_Classes :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Classes :selected').length)+' elemet?')){Text=''; $('#Delete_Classes :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text, Type: 1},function(data){if(data=='1'){$('#Delete_Class').val('Válasszon elemet!').attr('disabled', true); $('#Delete_Classes :selected').each(function(index, value){Classes.splice($('#Delete_Classes option[value=\''+($(value).val())+'\']').prop('index')+1,1); $('#Edit_Class option[value=\''+($(this).val())+'\'],#NewT_Class option[value=\''+($(this).val())+'\']').remove();}); $('#Delete_Classes :selected').remove(); if($('#Delete_Classes option').length==0)$('#Classes_Div').hide('fast'); Message('Osztályok törölve',5000,'Class_Error','green');}else Message('Hiba a folyamatban!',5000,'Class_Error','red');});}" disabled="disabled"/>
+                            <input type="Button" id="Delete_Class" value="Válasszon elemet!" onClick="if($('#Delete_Classes :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Classes :selected').length)+' elemet?')){Text=''; $('#Delete_Classes :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text, Type: 1},function(data){if(data=='1'){$('#Delete_Class').val('Válasszon elemet!').attr('disabled', true); $('#Delete_Classes :selected').each(function(index, value){Classes.splice($('#Delete_Classes option[value=\''+($(value).val())+'\']').prop('index')+1,1); $('#Edit_Class option[value=\''+($(this).val())+'\'],#NewT_Class option[value=\''+($(this).val())+'\']').remove();}); $('#Delete_Classes :selected').remove(); if($('#Delete_Classes option').length==0)$('#Classes_Div, .Class').hide('fast'); Message('Osztály(ok) törölve',5000,'Class_Error','green'); Timetable_Input();}else Message('Hiba a folyamatban!',5000,'Class_Error','red');});}" disabled="disabled"/>
                          </div>
                     </div>
                     <div id="Lesson_Manager" style="display: none;">
@@ -242,7 +273,7 @@ if($_SESSION["ID"]!=-1)
                          <label for="New_Lesson">Tanóra:</label> <input type="Text" id="New_Lesson" placeholder="Tanóra"/>
                          <label for="Edit_Lesson_Enabled">Látható</label><input type="radio" name="Edit_Lesson_Status" id="Edit_Lesson_Enabled" value="1" checked="checked" />
                          <label for="Edit_Lesson_Disabled">Rejtett</label><input type="radio" name="Edit_Lesson_Status" id="Edit_Lesson_Disabled" value="0" />
-                         <input type="Button" value="Hozzáadás" onClick="if($('#New_Lesson').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else $.post('ajax.php',{TYPE: 5, Type: 0, Data: +$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'), Text: $('#New_Lesson').val()},function(data){if(data=='-1')Message('Hiba!',5000,'Lesson_Error','red'); else if(data=='-2')Message('Ilyen óra már létezik.',5000,'Lesson_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else{$('#Edit_Lesson,#Delete_Lessons'+(+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked')?',#NewT_Lesson':'')).append($('<option></option>').attr('value', data).text($('#New_Lesson').val())); $('#New_Lesson').val(''); Lessons[$('#Edit_Lesson option').length-1]=+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'); if($('#Delete_Lessons option').length==1)$('#Lessons_Div').show('fast'); Message('Új óra hozzáadva',5000,'Lesson_Error','green');}});"/>
+                         <input type="Button" value="Hozzáadás" onClick="if($('#New_Lesson').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else $.post('ajax.php',{TYPE: 5, Type: 0, Data: +$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'), Text: $('#New_Lesson').val()},function(data){if(data=='-1')Message('Hiba!',5000,'Lesson_Error','red'); else if(data=='-2')Message('Ilyen óra már létezik.',5000,'Lesson_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else{$('#Edit_Lesson,#Delete_Lessons'+(+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked')?',#NewT_Lesson':'')).append($('<option></option>').attr('value', data).text($('#New_Lesson').val())); $('#New_Lesson').val(''); Lessons[$('#Edit_Lesson option').length-1]=+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'); if($('#Delete_Lessons option').length==1)$('#Lessons_Div').show('fast'); Message('Új óra hozzáadva',5000,'Lesson_Error','green'); Timetable_Input();}});"/>
                          <div id="Lessons_Div"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE"))==0?" style=\"display: none;\"":""; ?>>
                              <select id="Edit_Lesson" onChange="$('input:radio[name=\'Edit_Lesson_Status\'][value=\''+Lessons[$(this).prop('selectedIndex')]+'\']').prop('checked', true); if($(':selected',this).val()!='-'){$('#New_Lesson').val($(':selected',this).text()); $('#New_Lesson_Update').attr('disabled', false);}else $('#New_Lesson_Update').attr('disabled', true);">
                                 <option value="-"> - </option>
@@ -252,18 +283,16 @@ if($_SESSION["ID"]!=-1)
                                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE ORDER BY name ASC");
                                 while($row=mysql_fetch_array($ADAT)) {
                                     $DefaulT.="<option value='".$row["id"]."'>".$row["name"]."</option>\n";
-                                    if($Default!="")
-                                        $Default.=",";
-                                    $Default.=$row["enabled"];
+                                    $Default.=",".$row["enabled"];
                                 }
-                                echo $DefaulT."<script>Lessons = new Array(1,".$Default.");</script>";
+                                echo $DefaulT."<script>Lessons = new Array(1".$Default.");</script>";
                                 ?>
                             </select>
-                         <input type="Button" value="Módosítás" id="New_Lesson_Update" onClick="if($('#New_Lesson').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else if($('#New_Lesson').val()==$('#Edit_Lesson option:selected').text() && Lessons[$('#Edit_Lesson').prop('selectedIndex')]==+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'))Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Lesson_Error','red'); else $.post('ajax.php',{TYPE: 6, Type: 0, Data: +$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'), Id: $('#Edit_Lesson :selected').val(), Text: $('#New_Lesson').val()},function(data){if(data=='-2')Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Lesson_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!.',5000,'Lesson_Error','red'); else if(data=='1'){$('#Edit_Lesson option[value=\''+$('#Edit_Lesson :selected').val()+'\'],#Delete_Lessons option[value=\''+$('#Edit_Lesson :selected').val()+'\'],#NewT_Lesson option[value=\''+$('#Edit_Lesson :selected').val()+'\']').text($('#New_Lesson').val()); Lessons[$('#Edit_Lesson').prop('selectedIndex')]=+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'); Message('Módosítva!',5000,'Lesson_Error','green');}else Message('Hiba!',5000,'Lesson_Error','red');});" disabled="disabled"/><br />
+                         <input type="Button" value="Módosítás" id="New_Lesson_Update" onClick="if($('#New_Lesson').val()=='')Message('Nem töltötted ki a mezőt!',5000,'Lesson_Error','red'); else if($('#New_Lesson').val()==$('#Edit_Lesson option:selected').text() && Lessons[$('#Edit_Lesson').prop('selectedIndex')]==+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'))Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Lesson_Error','red'); else $.post('ajax.php',{TYPE: 6, Type: 0, Data: +$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'), Id: $('#Edit_Lesson :selected').val(), Text: $('#New_Lesson').val()},function(data){if(data=='-2')Message('Adj meg egy másik nevet, vagy változtasd meg a láthatóságot.',5000,'Lesson_Error','red'); else if(data=='-3')Message('Nem töltötted ki a mezőt!.',5000,'Lesson_Error','red'); else if(data=='1'){$('#Edit_Lesson option[value=\''+$('#Edit_Lesson :selected').val()+'\'],#Delete_Lessons option[value=\''+$('#Edit_Lesson :selected').val()+'\'],#NewT_Lesson option[value=\''+$('#Edit_Lesson :selected').val()+'\']').text($('#New_Lesson').val()); Lessons[$('#Edit_Lesson').prop('selectedIndex')]=+$('input:radio[name=\'Edit_Lesson_Status\']').prop('checked'); Message('Módosítva!',5000,'Lesson_Error','green'); Timetable_Input();}else Message('Hiba!',5000,'Lesson_Error','red');});" disabled="disabled"/><br />
                             <select id="Delete_Lessons" onChange="if($('#Delete_Lessons :selected').length==0){$('#Delete_Lesson').val('Válasszon elemet!').attr('disabled', true);}else{$('#Delete_Lesson').val($('#Delete_Lessons :selected').length+' elem törlése').attr('disabled', false);}" multiple="multiple">
                                 <?php echo $DefaulT; ?>
                             </select><br />
-                            <input type="Button" id="Delete_Lesson" value="Válasszon elemet!" onClick="if($('#Delete_Lessons :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Lessons :selected').length)+' elemet?')){Text=''; $('#Delete_Lessons :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text},function(data){if(data=='1'){$('#Delete_Lessons :selected').each(function(index, value){Lessons.splice($('#Delete_Lessons option[value=\''+($(value).val())+'\']').prop('index')+1,1); $('#Edit_Lesson option[value=\''+($(value).val())+'\'],#NewT_Lesson option[value=\''+($(value).val())+'\'],#Delete_Lessons option[value=\''+($(value).val())+'\']').remove();}); $('#Delete_Lesson').val('Válasszon elemet!').attr('disabled', true); if($('#Delete_Lessons option').length==0)$('#Lessons_Div').hide('fast'); $('#New_Lesson').change(); Message('Órák törölve',5000,'Lesson_Error','green');}else Message('Hiba a folyamatban!',5000,'Lesson_Error','red');});}" disabled="disabled"/>
+                            <input type="Button" id="Delete_Lesson" value="Válasszon elemet!" onClick="if($('#Delete_Lessons :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Lessons :selected').length)+' elemet?')){Text=''; $('#Delete_Lessons :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text},function(data){if(data=='1'){$('#Delete_Lessons :selected').each(function(index, value){Lessons.splice($('#Delete_Lessons option[value=\''+($(value).val())+'\']').prop('index')+1,1); $('#Edit_Lesson option[value=\''+($(value).val())+'\'],#NewT_Lesson option[value=\''+($(value).val())+'\'],#Delete_Lessons option[value=\''+($(value).val())+'\']').remove();}); $('#Delete_Lesson').val('Válasszon elemet!').attr('disabled', true); if($('#Delete_Lessons option').length==0)$('#Lessons_Div').hide('fast'); $('#New_Lesson').change(); Message('Órák törölve',5000,'Lesson_Error','green'); Timetable_Input();}else Message('Hiba a folyamatban!',5000,'Lesson_Error','red');});}" disabled="disabled"/>
                          </div>
                     </div>
                     <div id="User_Manager" style="display: none;">
@@ -282,15 +311,16 @@ if($_SESSION["ID"]!=-1)
                                     if($Default=="")$Default=$row["name"];
                                     }                                    
                                  ?>
-                                </select><input type="Button" value="Módosítás" id="Change_User" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else $.post('ajax.php',{TYPE: 11, Type: $('#Edit_User :selected').val(), Data: $('#User_Form').serialize()},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='1'){Message('Felhasználó módosítva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz';  else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#User_Password').val(''); $('#Edit_User :selected,#Delete_Users option[value='+($('#Edit_User :selected').val())+']').html(User); $('#NewT_Student option[value='+($('#Edit_User :selected').val())+'],#NewT_Teacher option[value='+($('#Edit_User :selected').val())+']').remove(); if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value', $('#Edit_User :selected').val()).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value', $('#Edit_User :selected').val()).text($('#User_RealName').val()));}else Message('Hiba!',5000,'User_Error','red');});" disabled="disabled"/><br />
+                                </select><input type="Button" value="Módosítás" id="Change_User" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else $.post('ajax.php',{TYPE: 11, Type: $('#Edit_User :selected').val(), Data: $('#User_Form').serialize()},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='1'){Message('Felhasználó módosítva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz';  else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#User_Password').val(''); $('#Edit_User :selected,#Delete_Users option[value='+($('#Edit_User :selected').val())+']').html(User); $('#NewT_Student option[value='+($('#Edit_User :selected').val())+'],#NewT_Teacher option[value='+($('#Edit_User :selected').val())+'],#Parent_To_Student option[value='+($('#Edit_User :selected').val())+']').remove(); if($('#User_Rank :selected').val()=='2')$('#Parent_To_Student optgroup').append($('<option></option>').attr('value', $('#Edit_User :selected').val()).text('('+$('#User_Username').val()+') '+$('#User_RealName').val())); else if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value', $('#Edit_User :selected').val()).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value', $('#Edit_User :selected').val()).text($('#User_RealName').val())); if($('#Parent_To_Student option').length>1)$('.Parent').show(); else $('.Parent').hide(); Timetable_Input();}else Message('Hiba!',5000,'User_Error','red');});" disabled="disabled"/><br />
                                 <select id="Delete_Users" onChange="if($('#Delete_Users :selected').length==0){$('#Delete_User').val('Válasszon felhasználót!').attr('disabled', true);}else{$('#Delete_User').val($('#Delete_Users :selected').length+' elem törlése').attr('disabled', false);}" multiple="multiple">
                                     <?php echo $Users; ?>
                                 </select><br />
-                                <input type="Button" id="Delete_User" value="Válasszon felhasználót!" onClick="if($('#Delete_Users :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Users :selected').length)+' felhasználót?\nA hozzájuk tartozó adatok elvesznek.')){Text=''; $('#Delete_Users :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text, Type: 2},function(data){if(data=='1'){$('#Delete_User').val('Válasszon felhasználót!').attr('disabled', true); $('#Delete_Users :selected').each(function(index, value){$('#NewT_Student option[value='+($(value).val())+'],#NewT_Teacher option[value='+($(value).val())+']').remove();}); $('#Delete_Users :selected').remove(); $('#Edit_User').html($('#Delete_Users').html()); Message('Felhasználók törölve',5000,'User_Error','green');}else Message('Hiba a folyamatban!',5000,'User_Error','red');});}" disabled="disabled"/>
+                                <input type="Button" id="Delete_User" value="Válasszon felhasználót!" onClick="if($('#Delete_Users :selected').length!=0)if(confirm('Biztosan törölsz '+($('#Delete_Users :selected').length)+' felhasználót?\nA hozzájuk tartozó adatok elvesznek.')){Text=''; $('#Delete_Users :selected').each(function(index, value){if(Text!='')Text+=','; Text+=$(value).val();}); $.post('ajax.php',{TYPE: 4, Text: Text, Type: 2},function(data){if(data=='1'){$('#Delete_User').val('Válasszon felhasználót!').attr('disabled', true); $('#Delete_Users :selected').each(function(index, value){$('#NewT_Student option[value='+($(value).val())+'],#NewT_Teacher option[value='+($(value).val())+'],#Parent_To_Student option[value='+($(value).val())+']').remove();}); $('#Delete_Users :selected').remove(); $('#Edit_User').html($('#Delete_Users').html()); if($('#Parent_To_Student option').length==1)$('.Parent').hide(); Message('Felhasználó(k) törölve',5000,'User_Error','green'); Timetable_Input();}else Message('Hiba a folyamatban!',5000,'User_Error','red');});}" disabled="disabled"/>
                             </div>
                     </div>
                     <div id="Timetable_Manager" style="display: none;">
                     <div id="Timetable_Error"></div>
+                    <div id="Timetable_Manager_Content">
                     <h5>Új órarendi pont hozzáadása</h5>
                     <label for="NewT_Day">Hét napja:</label> <select id="NewT_Day" onChange="$('#NewT_Lesson_Number').val(1);">
                         <?php
@@ -299,18 +329,23 @@ if($_SESSION["ID"]!=-1)
                         ?>
                     </select><br />
                     <label for="NewT_Lesson_Number">Óra száma:</label> <input type="number" id="NewT_Lesson_Number" maxlength="2" size="2" max="15" min="0" value="1" /><br />
-                    (<label for="NewT_Student">Tanuló:</label> <select id="NewT_Student" onChange="$('#NewT_Class').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
-                        <option value="">-Válassz-</option>
-                        <?php
-                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
-                            while($row=mysql_fetch_array($ADAT))
-                                echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
-                        ?>
-                    </select> vagy 
-                    <label for="NewT_Class">osztály:</label> <select id="NewT_Class" onChange="$('#NewT_Student').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
-                        <option value="">-Válassz-</option>
-                        <?php if(isset($Classes))echo $Classes; ?>
-                    </select>)<br />
+                    <p class="Bracket" style="display: inline;">(</p>
+                    <p id="TStudent" style="display: inline;">
+                        <label for="NewT_Student">Tanuló:</label> <select id="NewT_Student" onChange="$('#NewT_Class').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
+                            <option value="">-Válassz-</option>
+                            <?php
+                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
+                                while($row=mysql_fetch_array($ADAT))
+                                    echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
+                            ?>
+                        </select>
+                    </p><p class="Bracket" style="display: inline;"> vagy </p>
+                    <p id="TClass" style="display: inline;">
+                        <label for="NewT_Class">Osztály:</label> <select id="NewT_Class" onChange="$('#NewT_Student').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
+                            <option value="">-Válassz-</option>
+                            <?php echo $Classes; ?>
+                        </select>
+                    </p><p class="Bracket" style="display: inline;">)</p><br />
                     <label for="NewT_Lesson">Óra:</label> <select id="NewT_Lesson" onChange="if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
                         <option value="">-Válassz-</option>
                         <?php
@@ -329,8 +364,9 @@ if($_SESSION["ID"]!=-1)
                     </select><br />
                     <label for="NewT_From">Kezdete:</label> <input type="Date" id="NewT_From" value="<?php echo date("Y-m-d"); ?>" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" onChange="if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);"/><br />
                     <label for="NewT_To">Vége:</label> <input type="Date" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" id="NewT_To"/><font size="1"><i>(ürses ha nincs megadva)</i></font><br />
-                    <input type="Button" disabled="disabled" id="NewT_Button" value="Hozzáad" onClick="if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_Lesson option:selected').val()!='' && $('#NewT_From').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))if($('#NewT_Class option:selected').val()=='')Type='1'; else Type='2'; $.post('ajax.php',{TYPE: 13, Type: Type, Data: $('#NewT_Student option:selected').val()+$('#NewT_Class option:selected').val(), Data2: $('#NewT_Lesson option:selected').val(), Data3: $('#NewT_Teacher option:selected').val(), Data4: $('#NewT_Day').val(), Data5: $('#NewT_Lesson_Number').val(), Data6: $('#NewT_From').val(), Data7: $('#NewT_To').val()},function(data){if(data=='1'){if(parseInt($('#NewT_Lesson_Number').val())<parseInt($('#NewT_Lesson_Number').attr('max')))$('#NewT_Lesson_Number').val(+$('#NewT_Lesson_Number').val()+1); else{$('#NewT_Lesson_Number').val(1); if($('#NewT_Day :selected').val()<7)$('#NewT_Day option[value='+(+$('#NewT_Day :selected').val()+1)+']').attr('selected', 'selected');} Message('Hozzáadva',5000,'Timetable_Error','green'); }else Message('Hiba!',5000,'Timetable_Error','red');});"/>
+                    <input type="Button" disabled="disabled" id="NewT_Button" value="Hozzáad" onClick="if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_Lesson option:selected').val()!='' && $('#NewT_From').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))if($('#NewT_Class option:selected').val()=='')Type='1'; else Type='2'; $.post('ajax.php',{TYPE: 13, Type: Type, Data: $('#NewT_Student option:selected').val()+$('#NewT_Class option:selected').val(), Data2: $('#NewT_Lesson option:selected').val(), Data3: $('#NewT_Teacher option:selected').val(), Data4: $('#NewT_Day').val(), Data5: $('#NewT_Lesson_Number').val(), Data6: $('#NewT_From').val(), Data7: $('#NewT_To').val(), Data8: ($('#NewT_Student option:selected').val()==''?1:0)},function(data){if(data=='1'){if(parseInt($('#NewT_Lesson_Number').val())<parseInt($('#NewT_Lesson_Number').attr('max')))$('#NewT_Lesson_Number').val(+$('#NewT_Lesson_Number').val()+1); else{$('#NewT_Lesson_Number').val(1); if($('#NewT_Day :selected').val()<7)$('#NewT_Day option[value='+(+$('#NewT_Day :selected').val()+1)+']').attr('selected', 'selected');} Message('Hozzáadva',5000,'Timetable_Error','green'); }else Message('Hiba!',5000,'Timetable_Error','red');});"/>
                     </div>
+                </div>
                 </div>
             <?php } ?>
             <div id="Content">
@@ -359,7 +395,6 @@ if($_SESSION["ID"]!=-1)
                                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".$_SESSION["CLASS"]."'")))
                                         echo "<option value='".$_SESSION["CLASS"]."' SELECTED>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"), 0, "name")." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".$_SESSION["CLASS"]."'"))." fő)</option>\n";                                    
                                 }
-                            
                             echo '</optgroup></select><div id="Gardes">Kis türelmet...</div>';
                             }else
                             echo "<h5>Hozzon létre osztályokat!</h5>";
