@@ -13,55 +13,62 @@ if($_SESSION["ID"]==-1) {
 	echo "Hiba!";
 	exit;
 }
-if($_SESSION["RANK"]!=4 and $_SESSION["RANK"]!=3) {
-	echo "Csalunk? Csalunk? Nincs hozzá jogod!";
-	exit;
-}
+if($_SESSION["RANK"]!=4 and $_SESSION["RANK"]!=3)die("Csalunk? Csalunk? Nincs hozzá jogod!");
 
-if(!isset($_GET["id"])) {
-	echo "Paraméterhiba!";
-	exit;
-}
+if(!isset($_GET["id"]))die("Paraméterhiba!");
 
-$id=$_GET["id"];
+$id=mysql_real_escape_string($_GET["id"]);
 
-if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "status")!=1) {
-	echo "Csak tanuló jogokkal rendelkező felhasználó nyomtatható!";
-	exit;
-}
+if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='$id'")))die('Hiba! Nemlétező felhasználó.');
+
+if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "status")!=1)die("Csak tanuló jogokkal rendelkező felhasználó nyomtatható!");
 
 if(isset($_GET["date"]))
 	$date=$_GET["date"];
 		else
 		$date=date("Y");
+        $LESSONS=array();
+        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
+        while($row=mysql_fetch_array($ADAT))
+            if(!in_array($row["lesson"],$LESSONS))
+				if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='9'")))
+					array_push($LESSONS,$row["lesson"]);
+						else
+						die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
+        sort($LESSONS);
 ?>
 <html>
 	<head>
 		<title>Profil nyomtatása</title>
 	</head>
 	<body>
-		<h1 align="Center">Bizonyítvány <?php echo $date."-".date('Y', strtotime('+1 year', strtotime($date))); ?></h1>
-		<table align="Center">
+		<h1>Bizonyítvány <?php echo $date."-".date('Y', strtotime('+1 year', strtotime($date))); ?></h1>
+		<table>
 			<tr>
 				<td><b>Tanuló neve:</b></td>
-				<td><?php echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "real_name"); ?></td>
+				<td style="text-align:Right"><?php echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "real_name"); ?></td>
 			</tr>
 			<tr>
 				<td><b>Osztály:</b></td>
-				<td><?php echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "class")."'"), 0, "name"); ?></td>
+				<td style="text-align:Right"><?php echo !mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "class")."'"))?"Nincs osztály megadva":mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "class")."'"), 0, "name"); ?></td>
 			</tr>
 			<tr>
 				<td><b>OM azonosító:</b></td>
-				<td>Hamarosan!</td>
+				<td style="text-align:Right"><?php $OM=(string)mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "om_id"); echo (strlen($OM)==11 and $OM[0]=="7")?$OM:"Nincs OM azonosító megadva"; ?></td>
 			</tr>
-		</table>
-		<table align="Center">
+		</table><br />
+		<table>
 			<tr>
 				<td><b>Tantárgy</b></td>
-				<td><b>Érdemjegy</b></td>
+				<td style="text-align:Right"><b>Érdemjegy</b></td>
+				<?php
+				foreach($LESSONS as $text)
+					if($text!="")
+						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND type='9'"), 0, "value")."</td></tr>";
+				?>
 			</tr>
-		</table>
-		<table align="Center">
+		</table><br />
+		<table>
 			<tr>
 				<td colspan="3"><b>Hiányzások</b></td>
 				<td></td>
@@ -70,15 +77,22 @@ if(isset($_GET["date"]))
 			<tr>
 				<td>Igazolt</td>
 				<td>Igazolatlan</td>
-				<td>Öszsesen</td>
+				<td><b>Öszsesen</b></td>
 			</tr>
 			<tr>
-				<td>0</td>
-				<td>0</td>
-				<td>0</td>
+				<td style="text-align:Center">0</td>
+				<td style="text-align:Center">0</td>
+				<td style="text-align:Center"><i>0</i></td>
 			</tr>
 		</table>
 		<?php echo date("Y-m-d"); ?>
+		<br /><br />
+		<table>
+			<tr>
+				<td width="50%">osztályfőnök</td>
+				<td width="50%">szülő, godnviselő</td>
+			</tr>
+		</table>
 	</body>
 </html>
 	<?php exit;
@@ -553,7 +567,7 @@ switch((int)$_POST["TYPE"])
             }else
             echo -1;
         break;
-    case 8:
+    case 8: //Add garde
         if($_SESSION["ID"]==-1)
             {
             echo "Hiba!";
@@ -563,7 +577,7 @@ switch((int)$_POST["TYPE"])
             {
             echo "Csalunk? Csalunk? Nincs hozzá jogod!";
             exit;
-            }
+            }        
         if(isset($_POST["Data"]) and isset($_POST["Type"]))
             if($_POST["Data"]!="" and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE (status='3' OR status='4') AND id='".mysql_real_escape_string($_SESSION["ID"])."'"))==1 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Type"])."'"))==1)
                 {
@@ -645,6 +659,7 @@ switch((int)$_POST["TYPE"])
                     $U  = $row["id"];
                     $UN = $row["username"];
                     $RN = $row["real_name"];
+					$OM	= $row["om_id"];
                     $R  = $row["status"];
                     $P  = $row["parent"];
                     $C  = $row["class"];
@@ -665,43 +680,50 @@ switch((int)$_POST["TYPE"])
                         </optgroup>
                 </select><br />
                 <div id="Student"<?php echo ($U!=-1)?(($R==1)?"":" style=\"display: none;\""):""; ?>>
-                    <label for="Parent_To_Student">Szülő:</label> 
-                    <select id="Parent_To_Student" name="PAR">
-                        <optgroup label='Válasszon szülőt!'>
-                            <option value="0"> - </option>
-                                <?php
-                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='2' ORDER BY real_name ASC");
-                                while($row=mysql_fetch_array($ADAT))
-                                    echo "<option value='".$row["id"]."'".(($U!=-1)?(($P==$row["id"])?" selected=\"selected\"":""):"").">(".$row["username"].") ".$row["real_name"]."</option>\n";
-                                ?>
-                        </optgroup>
-                    </select><br />
-                    <label for="Class_To_Student">Osztály:</label> 
-                    <select id="Class_To_Student" name="CS">
-                        <optgroup label='Válasszon osztályt!'>
-                            <option value="0"> - </option>
-                                <?php
-                                $CLASSES="";
-                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' ORDER BY name ASC");
-                                while($row=mysql_fetch_array($ADAT))
-                                    $CLASSES.="<option value='".$row["id"]."'".(($U!=-1)?(($C==$row["id"])?" SELECTED":""):"").">".$row["name"]."</option>\n";
-                                echo $CLASSES;
-                                ?>
-                        </optgroup>
-                    </select>
+                    <div class="Parent"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='2'"))>0?'':' style="display: none"'; ?>>
+                        <label for="Parent_To_Student">Szülő:</label> 
+                        <select id="Parent_To_Student" name="PAR">
+                            <optgroup label='Válasszon szülőt!'>
+                                <option value="0"> - </option>
+                                    <?php
+                                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='2' ORDER BY real_name ASC");
+                                    while($row=mysql_fetch_array($ADAT))
+                                        echo "<option value='".$row["id"]."'".(($U!=-1)?(($P==$row["id"])?" selected=\"selected\"":""):"").">(".$row["username"].") ".$row["real_name"]."</option>\n";
+                                    ?>
+                            </optgroup>
+                        </select>
+                     </div>
+                    <div class="Class"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1'"))>0?'':' style="display: none"'; ?>>
+                        <label for="Class_To_Student">Osztály:</label> 
+                        <select id="Class_To_Student" name="CS">
+                            <optgroup label='Válasszon osztályt!'>
+                                <option value="0"> - </option>
+                                    <?php
+                                    $CLASSES="";
+                                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' ORDER BY name ASC");
+                                    while($row=mysql_fetch_array($ADAT))
+                                        $CLASSES.="<option value='".$row["id"]."'".(($U!=-1)?(($C==$row["id"])?" SELECTED":""):"").">".$row["name"]."</option>\n";
+                                    echo $CLASSES;
+                                    ?>
+                            </optgroup>
+                        </select>
+                </div>
+				<label for="Student_OM">OM azonosítója:</label> <input id="Student_OM" name="OM" type="Number" size="11" maxlength="11" min="70000000000" max="79999999999" value="<?php echo $OM; ?>" onKeyUp="this.value = this.value.replace(/[^0-9\.]/g,'');" />
                 </div>
                 <div id="Parent"<?php echo ($U!=-1)?(($R==2)?"":" style=\"display: none;\"style=\"display: none;\""):" style=\"display: none;\""; ?>></div>
                 <div id="Teacher"<?php echo ($U!=-1)?(($R==3)?"":" style=\"display: none;\"style=\"display: none;\""):" style=\"display: none;\""; ?>>
-                    <label for="Class_To_Teacher">Osztály:</label> 
-                    <select id="Class_To_Teacher" name="CT">
-                        <optgroup label='Válasszon osztályt!'>
-                            <option value="0"> - </option>
-                            <?php echo $CLASSES; ?>
-                        </optgroup>
-                    </select>
+                    <div class="Class"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1'"))>0?'':' style="display: none"'; ?>>
+                        <label for="Class_To_Teacher">Osztály:</label> 
+                        <select id="Class_To_Teacher" name="CT">
+                            <optgroup label='Válasszon osztályt!'>
+                                <option value="0"> - </option>
+                                <?php echo $CLASSES; ?>
+                            </optgroup>
+                        </select>
+                    </div>
                 </div>
                 <div id="Administrator"<?php echo ($U!=-1)?(($R==4)?"":" style=\"display: none;\"style=\"display: none;\""):" style=\"display: none;\""; ?>></div><br/>
-                <input type="Button" value="Hozzáad" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='' || $('#User_Password').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else $.post('ajax.php',{TYPE: 10, Data: $('#User_Form').serialize()},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='-1')Message('Hiba!',5000,'User_Error','red'); else{Message('Felhasználó hozzáadva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz'; else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#Edit_User,#Delete_Users').append($('<option></option>').attr('value', a).text(User)); if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); $('#Users_Div').show('fast'); $.post('ajax.php',{TYPE: 9},function(a){$('#User_Content').html(a);});}});"/>
+                <input type="Button" value="Hozzáad" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='' || $('#User_Password').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else $.post('ajax.php',{TYPE: 10, Data: $('#User_Form').serialize()},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='-4')Message('Rossz OM azonosító formátum.',5000,'User_Error','red'); else if(a=='-5')Message('Ez az OM azonosító már használatban van.',5000,'User_Error','red'); else if(a=='-1')Message('Hiba!',5000,'User_Error','red'); else{Message('Felhasználó hozzáadva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz'; else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#Edit_User,#Delete_Users').append($('<option></option>').attr('value', a).text(User)); if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); $('#Users_Div').show('fast'); $.post('ajax.php',{TYPE: 9},function(a){$('#User_Content').html(a); Timetable_Input();});}});"/>
                 <input type="Button" value="Eldob" onClick="if(confirm('Biztosan kiüríted az űrlapot?')){$('#User_Username,#User_RealName,#User_Password').val(''); $('#User_Rank,#Parent_To_Student,#Class_To_Student,#Class_To_Teacher,#Edit_User').each(function(){$(this).val($('option:first',this).val()).trigger('change');});}"/>
             </form>
         <?php
@@ -729,23 +751,29 @@ switch((int)$_POST["TYPE"])
             $text2[$Type[0]]=$Type[1];
             }
         $Data=$text2;
-        if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]))
+        if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]) or !isset($Data["OM"]))
             echo -1;
             else
-            if($Data["UN"]=="" or $Data["RN"]=="" or $Data["PAS"]=="")
+            if($Data["UN"]=="" or $Data["RN"]=="" or $Data["PAS"]=="" or (string)$Data["OM"]=="")
                 echo -2;
                 else
-                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"))==1)
-                    echo -3;
-                        else{
-                        $C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
-                        $C=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0;
-                        $P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
-                        if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `password`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
-                            echo -1;
-                                else
-                                echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"), 0, "id");
-                        }
+				if(strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7")
+					echo -4;
+						else
+						if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."'"))==1)
+						 echo -5;
+							else
+							if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"))==1)
+								echo -3;
+									else{
+									$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
+									$C=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0;
+									$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
+									if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `password`, `om_id`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', '".mysql_real_escape_string($Data["OM"])."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
+										echo -1;
+											else
+											echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"), 0, "id");
+									}
                 
         break;
     case 11: //Change user data
@@ -772,20 +800,26 @@ switch((int)$_POST["TYPE"])
                     $text2[$Type[0]]=$Type[1];
                     }
                 $Data=$text2;
-                if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]))
+                if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]) or !isset($Data["OM"]))
                     echo -1;
                     else
-                    if($Data["UN"]=="" or $Data["RN"]=="")
+                    if($Data["UN"]=="" or $Data["RN"]=="" or (string)$Data["OM"]=="")
                         echo -2;
-                        else
-                        if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."' AND id!='".mysql_real_escape_string($_POST["Type"])."'"))==0)
-                            {
-                            $C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
-                            $C=$C==0?0:(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0);
-                            $P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
-                            echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', status='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", password='".sha1(md5($Data["PAS"]))."'")." WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
-                            }else
-                            echo -3;
+							else
+						if(strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7")
+							echo -4;
+								else
+								if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."' AND id!='".mysql_real_escape_string($_POST["Type"])."'"))==1)
+									echo -5;
+										else
+											if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."' AND id!='".mysql_real_escape_string($_POST["Type"])."'"))==0)
+												{
+												$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
+												$C=$C==0?0:(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0);
+												$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
+												echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', status='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", password='".sha1(md5($Data["PAS"]))."'").", om_id='".mysql_real_escape_string($Data["OM"])."' WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
+												}else
+												echo -3;
                     }
         break;
         case 12: //Timetable
@@ -839,7 +873,7 @@ switch((int)$_POST["TYPE"])
                     $i.="<option value='".$row["id"]."'".(($ID==$row["id"] and $TYPE==1)?" SELECTED":"").">".$row["real_name"]."</option>\n";
                     $ii+=1;
                 }
-            echo '<table border="1" align="center"><tr><td><select id="Select_TimeTable_Teacher" onChange="$(\'#Select_TimeTable_Classes\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$i.'</select></td><td'.($jj>1?'':' style="display: none;"').'><label for="Select_TimeTable_Classes">Osztály:</label> <select id="Select_TimeTable_Classes" onChange="$(\'#Select_TimeTable_Teacher\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$j.'</select></td>';
+            echo '<table border="1" align="center"><tr><td><select id="Select_TimeTable_Teacher" onChange="$(\'#Select_TimeTable_Classes\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$i.'</select></td><td'.($jj>0?'':' style="display: none;"').'><label for="Select_TimeTable_Classes">Osztály:</label> <select id="Select_TimeTable_Classes" onChange="$(\'#Select_TimeTable_Teacher\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$j.'</select></td>';
             $j="";
             $jj=0;
             for($i=strtotime("Monday",$_FROM_DATE); $i<=$_TO_DATE; $i=strtotime("+1 week",$i))
@@ -896,7 +930,7 @@ switch((int)$_POST["TYPE"])
                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($row["lesson"])."'"))!=1)
                     continue;
                 if($TYPE==1)
-                    $row["description"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($row["lesson"])."' LIMIT 1"), 0, "name")." (".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($row["class"])."' LIMIT 1"), 0, "name").")";
+                    $row["description"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($row["lesson"])."' LIMIT 1"), 0, "name")." (".($row["class"]?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($row["class"])."' LIMIT 1"), 0, "name"):mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($row["uid"])."' LIMIT 1"), 0, "real_name")).")";
                     else
                     $row["description"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($row["lesson"])."' LIMIT 1"), 0, "name")."<br />".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($row["tid"])."' LIMIT 1"), 0, "real_name");
                 foreach($row as $key=>$value)
@@ -928,17 +962,17 @@ switch((int)$_POST["TYPE"])
                         $Des="";
                         foreach($DATES as $array)
                             if($array["day"]==$HEAD[$a] and $array["number"]==$i)
-                                $Des.=($_SESSION["RANK"]==4?"<a href=\"javascript:void(0);\" onClick=\"alert('Hamarosan szerkeszthető! Id: '+".$array["id"].");\" style=\"color: black; text-decoration: none;\">".$array["description"]."</a>":$array["description"]);
+                                $Des.=($_SESSION["RANK"]==4?"<a href=\"javascript:void(0);\" onClick=\"\$.post('ajax.php',{TYPE: 16, Id: '".$array["id"]."'},function(data){\$('#EditTimetable').html(data);});\" style=\"color: black; text-decoration: none;\">".$array["description"]."</a>":$array["description"]);
                         echo "<td".(($Des=="" and $_SESSION["RANK"]==4)?" onClick=\"\$('#Other_Manager').show('fast'); \$('#NewT_Day option[value=\'".($a+1)."\'],#NewT_Class option[value=\'".($TYPE==2?$ID:"")."\'],#NewT_Student option[value=\'".($TYPE==3?$ID:"")."\'],#NewT_Lesson option[value=\'\'],#NewT_Teacher option[value=\'".($TYPE==1?$ID:"")."\']').attr('selected', 'selected'); \$('#NewT_Lesson_Number').val('".$i."'); \$('#NewT_From').val('".date("Y-m-d")."'); \$('#NewT_To').val('0000-00-00'); \$('#Timetable_Manager').show('fast'); \$('#Timetable').hide('fast'); \$('#Lesson_Manager').hide('fast'); $('#User_Manager').hide('fast'); \$('#Class_Manager').hide('fast');\"":"").">".$Des."</td>";
                         }
                     echo"</tr>";
                     }
                 ?>
-            </table>
+            </table><br />
             <div id="EditTimetable"></div>
             <?php
             break;
-    case 13:
+    case 13: //Add timetable
         if($_SESSION["ID"]==-1)
             {
             echo "Hiba!";
@@ -949,20 +983,20 @@ switch((int)$_POST["TYPE"])
             echo "Csalunk? Csalunk? Nincs hozzá jogod!";
             exit;
             }
-        if(isset($_POST["Type"]) and isset($_POST["Data"]) and isset($_POST["Data2"]) and isset($_POST["Data3"]) and isset($_POST["Data4"]) and isset($_POST["Data5"]) and isset($_POST["Data6"]) and isset($_POST["Data7"]))
+        if(isset($_POST["Type"]) and isset($_POST["Data"]) and isset($_POST["Data2"]) and isset($_POST["Data3"]) and isset($_POST["Data4"]) and isset($_POST["Data5"]) and isset($_POST["Data6"]) and isset($_POST["Data7"]) and isset($_POST["Data8"]))
             {
-            if($_POST["Type"]!="" and $_POST["Data"]!="" and $_POST["Data2"]!="" and $_POST["Data3"]!="" and $_POST["Data4"]!="" and $_POST["Data5"]!="" and $_POST["Data6"]!="")
+            if($_POST["Type"]!="" and $_POST["Data"]!="" and $_POST["Data2"]!="" and $_POST["Data3"]!="" and $_POST["Data4"]!="" and $_POST["Data5"]!="" and $_POST["Data6"]!="" and $_POST["Data8"]!="")
                 {
                 if($_POST["Data7"]=="")
                     $_POST["Data7"]="0000-00-00";
                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
                     {
-                    echo -1;
+                    echo -12;
                     exit;
                     }
                 if($_POST["Type"]=="1")
                     {
-                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."' LIMIT 1"), 0, "class")."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
+                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
                         {
                         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Data"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
@@ -976,7 +1010,7 @@ switch((int)$_POST["TYPE"])
                         echo -1;
                     }else{
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."'"))==1) {
-                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data"])."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
+                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
                             $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
                             while($row=mysql_fetch_array($ADAT))
                                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($row["id"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
@@ -1080,7 +1114,7 @@ switch((int)$_POST["TYPE"])
                 '</table>';
             }
         break;
-    case 15:
+    case 15: //Update garde
         if($_SESSION["ID"]==-1)
             {
             echo "Hiba!";
@@ -1124,6 +1158,109 @@ switch((int)$_POST["TYPE"])
                     echo -1;
                     break;
             }
+        break;
+    case 16: //Update timetable editor
+    if($_SESSION["ID"]==-1)
+            {
+            echo "Hiba!";
+            exit;
+            }
+        if($_SESSION["RANK"]!=4)
+            {
+            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
+            exit;
+            }
+        if(!isset($_POST["Id"]))
+            echo "Hiba!";
+            else{
+            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
+            while($row2=mysql_fetch_array($ADAT)) {
+                echo '<table border="1" align="Center">'.
+                    '<tr><td>Hét napja</td><td><select id="EditT_Day" onChange="$(\'#EditT_Lesson_Number\').val(1);"><option value="-">-Törlés-</option>';
+                    for($i=1; $i<=7; $i++)
+                        echo '<option value="'.$i.'"'.($row2["day"]==$i?" SELECTED":"").'>'.iconv('iso-8859-2','utf-8',strftime("%A",strtotime(date("l",mktime(0,0,0,7,$i,2013))))).'</option>';
+                echo '</select></td></tr>'.
+                    '<tr><td>Óra száma</td><td><input type="number" id="EditT_Lesson_Number" maxlength="2" size="2" max="15" min="0" value="1" /></td></tr>'.
+                    '<tr><td>Tanuló</td><td><select id="EditT_Student" onChange="$(\'#EditT_Class\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
+                    while($row=mysql_fetch_array($ADAT))
+                        echo '<option value="'.$row["id"].'"'.($row2["uid"]==$row["id"]?" SELECTED":"").'>'.$row["real_name"].'</option>\n';
+                echo '</select></td></tr>'.
+                    '<tr><td>Osztály</td><td><select id="EditT_Class" onChange="$(\'#EditT_Student\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC");
+                    while($row=mysql_fetch_array($ADAT))
+                        echo '<option value="'.$row["id"].'"'.($row2["class"]==$row["id"]?" SELECTED":"").'>'.$row["name"].'</option>\n';
+                echo '</select></td></tr>'.
+                    '<tr><td>Óra</td><td><select id="EditT_Lesson" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE enabled='1' ORDER BY name ASC");
+                    while($row=mysql_fetch_array($ADAT))
+                        echo '<option value="'.$row["id"].'"'.($row2["lesson"]==$row["id"]?" SELECTED":"").'>'.$row["name"].'</option>\n';
+                echo '</select></td></tr>'.
+                    '<tr><td>Tanár</td><td><select id="EditT_Teacher" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' ORDER BY real_name ASC");
+                    while($row=mysql_fetch_array($ADAT))
+                        echo '<option value="'.$row["id"].'"'.($row2["tid"]==$row["id"]?" SELECTED":"").'>'.$row["real_name"].'</option>\n';
+                echo '</select></td></tr>'.
+                    '<tr><td>Kezdete</td><td><input type="Date" id="EditT_From" value="'.$row2["from"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"/></td></tr>'.
+                    '<tr><td>Vége</td><td><input type="Date" id="EditT_To" value="'.$row2["to"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'"/></td></tr>'.
+                    '<tr><td><input type="Button" onClick="$(\'#EditTimetable\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="alert(\'Sajnos még nincs hatása!\');" value="Módosít"/></td></tr>'.
+                    '</table>';
+            }
+            }
+        break;
+    case 13: //Update timetable
+        if($_SESSION["ID"]==-1)
+            {
+            echo "Hiba!";
+            exit;
+            }
+        if($_SESSION["RANK"]!=4)
+            {
+            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
+            exit;
+            }
+        if(isset($_POST["Type"]) and isset($_POST["Data"]) and isset($_POST["Data2"]) and isset($_POST["Data3"]) and isset($_POST["Data4"]) and isset($_POST["Data5"]) and isset($_POST["Data6"]) and isset($_POST["Data7"]) and isset($_POST["Data8"]))
+            {
+            if($_POST["Type"]!="" and $_POST["Data"]!="" and $_POST["Data2"]!="" and $_POST["Data3"]!="" and $_POST["Data4"]!="" and $_POST["Data5"]!="" and $_POST["Data6"]!="" and $_POST["Data8"]!="")
+                {
+                if($_POST["Data7"]=="")
+                    $_POST["Data7"]="0000-00-00";
+                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
+                    {
+                    echo -12;
+                    exit;
+                    }
+                if($_POST["Type"]=="1")
+                    {
+                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
+                        {
+                        if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Data"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
+                            if(mysql_query($QUERY))
+                                echo mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($_POST["Data"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
+                                else
+                                echo -1;
+                            else
+                            echo mysql_query($QUERY);
+                        }else
+                        echo -1;
+                    }else{
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."'"))==1) {
+                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
+                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
+                            while($row=mysql_fetch_array($ADAT))
+                                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($row["id"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
+                                    mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($row["id"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
+                            echo 1;
+                        }else
+                        echo -1;
+                    }else
+                    echo -1;
+                }
+            }else
+            echo -1;
+            }else
+            echo -1;                
         break;
     default:
         echo -1;
