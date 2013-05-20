@@ -414,7 +414,7 @@ switch((int)$_POST["TYPE"])
                     }
                 }
         break;
-    case 4: //Delete classes/lessons/users
+    case 4: //Delete classes/lessons/users/timetable
         if($_SESSION["ID"]==-1)
             {
             echo "Hiba!";
@@ -428,6 +428,14 @@ switch((int)$_POST["TYPE"])
         $Type=(isset($_POST["Type"]))?$_POST["Type"]:0;
         switch($Type)
             {
+			case 3:
+                if(!isset($_POST["Text"]))die("-1");
+				$id=mysql_real_escape_string($_POST["Text"]);
+				if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE id='".$id."'")))die("-1");
+				$SQL=mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE id='".$id."'");
+				$id=mysql_fetch_array($SQL);
+				
+				break;
             case 2:
                 if(!isset($_POST["Text"]))
                         echo -1;
@@ -840,6 +848,10 @@ switch((int)$_POST["TYPE"])
                     $DATE=strtotime($_POST["Date"]);
             if(date("N",$DATE)!=1)
                 $DATE=strtotime("previous monday",$DATE);
+			if(date("N")==1)
+				$THIS=strtotime(date("Y-m-d"));
+					else
+					$THIS=strtotime("previous monday",strtotime(date("Y-m-d")));
             $DATEEND=strtotime("+6 day",$DATE);
             if($TYPE==1 or $TYPE==3)
                 $CLASS=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($ID)."' LIMIT 1"), 0, "class");
@@ -883,8 +895,8 @@ switch((int)$_POST["TYPE"])
                     $j.="<option value='".date('Y-m-d', $i)."'".(date('Y-m-d', $i)==date('Y-m-d', $DATE)?" SELECTED":"").">".date('Y-m-d', $i)." - ".date('Y-m-d', strtotime("+6 day",$i))."</option>";
                     $jj+=1;
                 }
-            echo '<td'.($jj>1?'':' style="display: none;"').'><label for="Timetable_Date">Dátum:</label> <select id="Timetable_Date" onChange="if($(\'#Select_TimeTable_Classes :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(\'#Select_TimeTable_Classes :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); else if($(\'#Select_TimeTable_Teacher :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(\'#Select_TimeTable_Teacher :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); $(\'#Timetable_Button\').attr(\'disabled\', ($(this).val()==\''.date('Y-m-d', strtotime("last Monday")).'\'));">'.
-                 $j."</select><input type=\"Button\" id=\"Timetable_Button\" onClick=\"\$('#Timetable_Date option[value=\'".date('Y-m-d', strtotime("last Monday"))."\']').attr('selected', 'selected').change();\" value=\"Ma\"".(date("Y-m-d",$DATE)==date('Y-m-d', strtotime("last Monday"))?' disabled="disabled"':'')."/></td></tr></table>";
+            echo '<td'.($jj>1?'':' style="display: none;"').'><label for="Timetable_Date">Dátum:</label> <select id="Timetable_Date" onChange="if($(\'#Select_TimeTable_Classes :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(\'#Select_TimeTable_Classes :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); else if($(\'#Select_TimeTable_Teacher :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(\'#Select_TimeTable_Teacher :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); $(\'#Timetable_Button\').attr(\'disabled\', ($(this).val()==\''.date("Y-m-d",$THIS).'\'));">'.
+                 $j."</select><input type=\"Button\" id=\"Timetable_Button\" onClick=\"\$('#Timetable_Date option[value=\'".date('Y-m-d',$THIS)."\']').attr('selected', 'selected').change();\" value=\"Ma\"".(date("Y-m-d",$DATE)==date('Y-m-d',$THIS)?' disabled="disabled"':'')."/></td></tr></table>";
             $SELECT="SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE ".$WHERE." AND `from` <= '".date("Y-m-d",$DATEEND)."' AND (`to` >= '".date("Y-m-d",$DATE)."' OR `to`='0000-00-00')";
             if(@mysql_num_rows(@mysql_query($SELECT))==0)
                 {
@@ -1205,7 +1217,7 @@ switch((int)$_POST["TYPE"])
                 echo '</select></td></tr>'.
                     '<tr><td>Kezdete</td><td><input type="Date" id="EditT_From" value="'.$row2["from"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"/></td></tr>'.
                     '<tr><td>Vége</td><td><input type="Date" id="EditT_To" value="'.$row2["to"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'"/></td></tr>'.
-                    '<tr><td><input type="Button" onClick="$(\'#EditTimetable\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="alert(\'Sajnos még nincs hatása!\');" value="Módosít"/></td></tr>'.
+                    '<tr><td><input type="Button" onClick="$(\'#EditTimetable\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="if($(\'#EditT_Day :selected\').val()==\'-\') alert(\'Törlés\'); else alert(\'Sajnos még nincs hatása!\');" value="Módosít"/></td></tr>'.
                     '</table>';
             }
             }
