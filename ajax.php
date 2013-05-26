@@ -42,7 +42,7 @@ if(isset($_GET["date"]))
 		<title>Profil nyomtatása</title>
 	</head>
 	<body>
-		<h1>Bizonyítvány <?php echo $date."-".date('Y', strtotime('+1 year', strtotime($date))); ?></h1>
+		<h3><?php echo (isset($_GET["firsthalf"])?"Félévi bizonyítvány":"Bizonyítvány")." ".$date."-".date('Y', strtotime('+1 year', strtotime($date))); ?></h3>
 		<table>
 			<tr>
 				<td><b>Tanuló neve:</b></td>
@@ -64,7 +64,7 @@ if(isset($_GET["date"]))
 				<?php
 				foreach($LESSONS as $text)
 					if($text!="")
-						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND type='9'"), 0, "value")."</td></tr>";
+						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
 				?>
 			</tr>
 		</table><br />
@@ -86,7 +86,7 @@ if(isset($_GET["date"]))
 			</tr>
 		</table>
 		<?php echo date("Y-m-d"); ?>
-		<br /><br />
+		<br /><hr /><br />
 		<table>
 			<tr>
 				<td width="50%">osztályfőnök</td>
@@ -98,10 +98,7 @@ if(isset($_GET["date"]))
 	<?php exit;
 }
 if(!isset($_POST["TYPE"]) or $_POST["TYPE"]=="")
-    {
-    echo "Paraméterhiba!";
-    exit;
-    }
+    die("Paraméterhiba!");
 
 switch((int)$_POST["TYPE"])
     {
@@ -122,15 +119,9 @@ switch((int)$_POST["TYPE"])
         break;
     case 2: //Gardes table
         if($_SESSION["ID"]==-1)
-            {
-            echo "Hiba!";
-            exit;
-            }
+            die("Hiba!");
         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE parent='".$_SESSION["ID"]."'"))==0 and $_SESSION["RANK"]==2)
-            {
-            echo "<h5>Még nincs gyermek megadva.</h5>";
-            exit;
-            }
+            die("<h5>Még nincs gyermek megadva.</h5>");
         if($_SESSION["RANK"]==2)
             {
             $ID=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE parent='".$_SESSION["ID"]."'"), 0, "id");
@@ -163,10 +154,7 @@ switch((int)$_POST["TYPE"])
             echo '</optgroup></select>';
             }
         if(count($HEAD)==1)
-            {
-            echo "<h5>Nincs még érdemjegy.</h5>";
-            exit;
-            }
+            die("<h5>Nincs még érdemjegy.</h5>");
         $HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND type='8'"));
         $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND type='9'"));
         ?>
@@ -228,15 +216,9 @@ switch((int)$_POST["TYPE"])
         break;
     case 3: //Gardes editor
         if($_SESSION["ID"]==-1)
-            {
-            echo "Hiba!";
-            exit;
-            }
+            die("Hiba!");
         if($_SESSION["RANK"]!=3 and $_SESSION["RANK"]!=4)
-            {
-            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
-            exit;
-            }
+            die("Csalunk? Csalunk? Nincs hozzá jogod!");
         if(!isset($_POST["Id"]))
             echo -1;
             else{
@@ -245,15 +227,9 @@ switch((int)$_POST["TYPE"])
                 echo -2;
                     else{
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE class='".$ID."' AND status='1'"))==0)
-                        {
-                        echo "<h5>Ebbe az osztályba egy tanuló sem jár.</h5>";
-                        exit;
-                        }
+                        die("<h5>Ebbe az osztályba egy tanuló sem jár.</h5>");
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$ID."'"))==0)
-                        {
-                        echo "<h5>Ebben az osztályban még senki nem tanul semmit.</h5>";
-                        exit;
-                        }
+						die("<h5>Ebben az osztályban még senki nem tanul semmit.</h5>");
                     if(isset($_POST["Type"]) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE enabled='1' AND id='".mysql_real_escape_string($_POST["Type"])."'"))>0)
                         $LESSON=$_POST["Type"];
                             else
@@ -295,15 +271,13 @@ switch((int)$_POST["TYPE"])
                                 foreach($HEAD as $text)
                                     echo "<td>".ucfirst($text)."</td>";
 							$HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND type='8'"));
-                               $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND class='".$ID."' AND type='9'"));
+                            $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND class='".$ID."' AND type='9'"));
                             if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) {
                                 $HALF+=1;
                                 $END+=1;
                             }
                             if($HALF!=0 or $END!=0)
                                 echo '<td rowspan="100%" width="10px"></td>'.($HALF==0?"":"<td>Félév</td>").($END==0?"":"<td>Év vége</td>");
-							if(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) and $END-1>0 and $HALF-1>0)
-								echo '<td rowspan="100%" width="10px"></td><td>Bizonyítvány</td>';
                             ?>
                             <td rowspan="100%" width="10px"></td>
                             <td class="EditTd">
@@ -342,7 +316,7 @@ switch((int)$_POST["TYPE"])
                         if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
                             $s=0; $n=0;
-                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name")."</td>";
+                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)?(($HALF-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&firsthalf&print' class='Print'>[1]</a></sup>":""):"").($END-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&print' class='Print'>[2]</a></sup>":""):"")):"")."</td>";
                             $GARDES=array();
                             $ADAT2=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9' ORDER BY date ASC");
                             while($row2=mysql_fetch_array($ADAT2))
@@ -374,8 +348,6 @@ switch((int)$_POST["TYPE"])
                                 }
                             $NUMBER=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9'"))>1?1:0;
                             echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
-							if(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) and $END-1>0 and $HALF-1>0)
-								echo (mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'")) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'")))?"<td><a href='ajax.php?id=".$row["uid"]."&print' class='Print'>Nyomtat</a></td>":"<td>Lezárást igényel</td>";
                             ?>
                             <td class="EditTd">
                                 <select class="Type" name="<?php echo $row["uid"]; ?>_TYPE">
