@@ -31,7 +31,7 @@ if(isset($_GET["date"]))
         $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
         while($row=mysql_fetch_array($ADAT))
             if(!in_array($row["lesson"],$LESSONS))
-				if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='9'")))
+				if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'")))
 					array_push($LESSONS,$row["lesson"]);
 						else
 						die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
