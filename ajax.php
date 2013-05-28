@@ -15,7 +15,7 @@ if($_SESSION["ID"]==-1) {
 }
 if($_SESSION["RANK"]!=4 and $_SESSION["RANK"]!=3)die("Csalunk? Csalunk? Nincs hozzá jogod!");
 
-if(!isset($_GET["id"]))die("Paraméterhiba!");
+if(!isset($_GET["id"]) or !isset($_GET["date"]))die("Paraméterhiba!");
 
 $id=mysql_real_escape_string($_GET["id"]);
 
@@ -23,26 +23,32 @@ if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='$id
 
 if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "status")!=1)die("Csak tanuló jogokkal rendelkező felhasználó nyomtatható!");
 
-if(isset($_GET["date"]))
-	$date=$_GET["date"];
+if(!strtotime($_GET["date"]."-1-1"))
+	$date=strtotime(date("Y")."-1-1");
 		else
-		$date=date("Y");
-        $LESSONS=array();
-        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
-        while($row=mysql_fetch_array($ADAT))
-            if(!in_array($row["lesson"],$LESSONS))
-				if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'")))
-					array_push($LESSONS,$row["lesson"]);
-						else
-						die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
-        sort($LESSONS);
+		$date=strtotime($_GET["date"]."-1-1");
+$LESSONS=array();
+$ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
+while($row=mysql_fetch_array($ADAT))
+	if(!in_array($row["lesson"],$LESSONS))
+		if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'")))
+			array_push($LESSONS,$row["lesson"]);
+				else
+				die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
+sort($LESSONS);
+$A=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (type='2' OR type='3')"));
+$B=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (type='1' OR type='4')"));
+if(isset($_GET["a"]))
+	$A=(int)$_GET["a"];
+if(isset($_GET["b"]))
+	$B=(int)$_GET["b"];
 ?>
 <html>
 	<head>
 		<title>Profil nyomtatása</title>
 	</head>
 	<body>
-		<h3><?php echo (isset($_GET["firsthalf"])?"Félévi bizonyítvány":"Bizonyítvány")." ".$date."-".date('Y', strtotime('+1 year', strtotime($date))); ?></h3>
+		<h3><?php echo (isset($_GET["firsthalf"])?"Félévi bizonyítvány":"Bizonyítvány")." ".date("Y",$date)."-".date('Y',strtotime("+1 year",$date)); ?></h3>
 		<table>
 			<tr>
 				<td><b>Tanuló neve:</b></td>
@@ -77,12 +83,12 @@ if(isset($_GET["date"]))
 			<tr>
 				<td>Igazolt</td>
 				<td>Igazolatlan</td>
-				<td><b>Öszsesen</b></td>
+				<td><b>Összesen</b></td>
 			</tr>
 			<tr>
-				<td style="text-align:Center">0</td>
-				<td style="text-align:Center">0</td>
-				<td style="text-align:Center"><i>0</i></td>
+				<td style="text-align:Center"><?php echo $A; ?></td>
+				<td style="text-align:Center"><?php echo $B; ?></td>
+				<td style="text-align:Center"><i><?php echo $A+$B; ?></i></td>
 			</tr>
 		</table>
 		<?php echo date("Y-m-d"); ?>
@@ -90,7 +96,7 @@ if(isset($_GET["date"]))
 		<table>
 			<tr>
 				<td width="50%">osztályfőnök</td>
-				<td width="50%">szülő, godnviselő</td>
+				<td width="50%">szülő, gondviselő</td>
 			</tr>
 		</table>
 	</body>
@@ -251,14 +257,15 @@ switch((int)$_POST["TYPE"])
                         echo "</optgroup></select>";
                         }
                     $HEAD=array();
-                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".$LESSON."' AND type!='8' AND type!='9' ORDER BY date ASC");
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".$LESSON."' AND type!='8' AND type!='9' AND date>'".date("Y-m-d",$_FROM_DATE)."' AND date<'".date("Y-m-d",$_TO_DATE)."' AND date!='0000-00-00' ORDER BY date ASC");
                     while($row=mysql_fetch_array($ADAT))
-                        if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID and $row["date"]!="0000-00-00")
+                        if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
                             $row["date"]=iconv('iso-8859-2','utf-8',strftime("%B",strtotime($row["date"])));
                             if(!in_array($row["date"],$HEAD))
                                 array_push($HEAD,$row["date"]);
                             }
+					$date=date("Y",$_FROM_DATE);
                     ?>
                     <form id="NewGardesForm">
                     <table border="1" align="center">
@@ -316,7 +323,7 @@ switch((int)$_POST["TYPE"])
                         if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
                             $s=0; $n=0;
-                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)?(($HALF-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&firsthalf&print' class='Print'>[1]</a></sup>":""):"").($END-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&print' class='Print'>[2]</a></sup>":""):"")):"")."</td>";
+                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)?(($HALF-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&firsthalf&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0;' class='Print'>[1]</a></sup>":""):"").($END-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&date=".$date."&print' class='Print'>[2]</a></sup>":""):"")):"")."</td>";
                             $GARDES=array();
                             $ADAT2=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9' ORDER BY date ASC");
                             while($row2=mysql_fetch_array($ADAT2))
