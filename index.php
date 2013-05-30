@@ -21,7 +21,7 @@ if(isset($_POST["Login_Username"]) and isset($_POST["Login_Password"]) and $_SES
     if($_POST["Login_Username"]=="" or $_POST["Login_Password"]=="")
         $_LE="Minden mező kitöltése kötelező!";
             else{
-            $row=@mysql_fetch_array(@mysql_query("SELECT * FROM `$_SYSTEM_USERS_TABLE` WHERE `username` = '".mysql_real_escape_string($_POST['Login_Username'])."' AND `password` = '".sha1(md5($_POST['Login_Password']))."'"));
+            $row=@mysql_fetch_array(@mysql_query("SELECT * FROM `$_SYSTEM_USERS_TABLE` WHERE `username` = '".mysql_real_escape_string($_POST['Login_Username'])."' AND `pass` = '".sha1(md5($_POST['Login_Password']))."'"));
             @mysql_free_result($row);
             if(!empty($row['id']))
                 $_SESSION["ID"]=$row["id"];
@@ -36,7 +36,7 @@ if($_SESSION["ID"]!=-1)
     while($row=mysql_fetch_array($ADAT))
         {
         $_SESSION["USERNAME"]   = $row["username"];
-        $_SESSION["RANK"]       = $row["status"];
+        $_SESSION["RANK"]       = $row["rank"];
         $_SESSION["REAL_NAME"]  = $row["real_name"];
         $_SESSION["PARENT"]     = $row["parent"];
         $_SESSION["CLASS"]      = $row["class"];
@@ -64,7 +64,7 @@ if($_SESSION["ID"]!=-1)
             $.post('ajax.php',{TYPE: 2},function(data){$('#Content').html(data);});
             <?php }else{
             if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
-                echo '$.post(\'ajax.php\',{TYPE: 3, '.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$_SESSION["CLASS"]."'"))>0?'Type: '.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":"")),0,"id").', ':'').'Id: '.($_SESSION["CLASS"]!=0?$_SESSION["CLASS"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC"),0,"id")).'},function(data){$(\'#Gardes\').html(data);});';
+                echo '$.post(\'ajax.php\',{TYPE: 3, '.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$_SESSION["CLASS"]."'"))>0?'Type: '.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":"")),0,"id").', ':'').'Id: '.($_SESSION["CLASS"]!=0?$_SESSION["CLASS"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC"),0,"id")).'},function(data){$(\'#Gardes\').html(data);});';
             if($_SESSION["RANK"]==4) { ?>
             $.post('ajax.php',{TYPE: 9},function(data){$('#User_Content').html(data);});
             Timetable_Input();
@@ -181,7 +181,7 @@ if($_SESSION["ID"]!=-1)
             <?php
             if(isset($_POST["NewCertificate"]) and isset($_POST["ID"]) and  ($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4))
                 {
-                mysql_query("INSERT `$_SYSTEM_DELAY_TABLE` (`id`, `uid`, `tid`, `type`, `description`, `value`, `from`, `to`, `fromdate`, `todate`) VALUES ( NULL, '".mysql_real_escape_string($_POST["ID"])."', '".mysql_real_escape_string($_SESSION["ID"])."', '".mysql_real_escape_string($_POST["Type"])."', '".mysql_real_escape_string(isset($_POST["Desc"])?$_POST["Desc"]:0)."', '".mysql_real_escape_string($_POST["Value"])."', '".mysql_real_escape_string($_POST["From"])."', '".mysql_real_escape_string($_POST["To"])."', '".mysql_real_escape_string($_POST["Dat"])."', '".mysql_real_escape_string($_POST["Dat2"])."')");
+                mysql_query("INSERT `$_SYSTEM_DELAY_TABLE` (`id`, `uid`, `tid`, `typ`, `description`, `delay`, `fromc`, `toc`, `fromdate`, `todate`) VALUES ( NULL, '".mysql_real_escape_string($_POST["ID"])."', '".mysql_real_escape_string($_SESSION["ID"])."', '".mysql_real_escape_string($_POST["Type"])."', '".mysql_real_escape_string(isset($_POST["Desc"])?$_POST["Desc"]:0)."', '".mysql_real_escape_string($_POST["Value"])."', '".mysql_real_escape_string($_POST["From"])."', '".mysql_real_escape_string($_POST["To"])."', '".mysql_real_escape_string($_POST["Dat"])."', '".mysql_real_escape_string($_POST["Dat2"])."')");
                 echo "<script>location.href='index.php';</script>";
                 }
             if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$_SESSION["ID"]."'"))==0)
@@ -189,12 +189,12 @@ if($_SESSION["ID"]!=-1)
                 else{
                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$_SESSION["ID"]."' ORDER BY fromdate ASC");                
                 while($row=mysql_fetch_array($ADAT))
-                    echo "<p>".($row["description"]==""?"Nincs leírás.":$row["description"])." (".$row["fromdate"].($row["todate"]!="0000-00-00"?" - ".$row["todate"]:"")." - ".($row["from"]<$row["to"]?$row["from"]:$row["to"]).($row["from"]==$row["to"]?"":"-".($row["from"]<$row["to"]?$row["to"]:$row["from"])).". óra - ".($row["type"]==1?"Igazolatlan késés (".$row["value"]." perc)":($row["type"]==2?"Igazolt késés (".$row["value"]." perc)":($row["type"]==4?"Igazolatlan hiányzás":($row["type"]==3?"Igazolt hiányzás":"Hiba!"))))." - ".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["tid"]."'"), 0, "real_name").")</p>";
+                    echo "<p>".($row["description"]==""?"Nincs leírás.":$row["description"])." (".$row["fromdate"].($row["todate"]!="0000-00-00"?" - ".$row["todate"]:"")." - ".($row["fromc"]<$row["toc"]?$row["fromc"]:$row["toc"]).($row["fromc"]==$row["toc"]?"":"-".($row["fromc"]<$row["toc"]?$row["toc"]:$row["fromc"])).". óra - ".($row["typ"]==1?"Igazolatlan késés (".$row["delay"]." perc)":($row["typ"]==2?"Igazolt késés (".$row["delay"]." perc)":($row["typ"]==4?"Igazolatlan hiányzás":($row["typ"]==3?"Igazolt hiányzás":"Hiba!"))))." - ".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["tid"]."'"), 0, "real_name").")</p>";
                 }
             if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)
                 {
                 echo "<form action='index.php' method='post'><select name='ID'>";
-                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
+                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' ORDER BY real_name ASC");
                 while($row=mysql_fetch_array($ADAT))
                     echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
                 echo "</select>";
@@ -306,8 +306,8 @@ if($_SESSION["ID"]!=-1)
                                  $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE ORDER BY real_name ASC");
                                  while($row=mysql_fetch_array($ADAT))
                                     {
-                                    echo "<option value='".$row["id"]."'>(".$row["username"]." - ".($row["status"]==4?"A":($row["status"]==3?"T":($row["status"]==2?"Sz":"D"))).") ".$row["real_name"]."</option>\n";
-                                    $Users.="<option value='".$row["id"]."'".($_SESSION["ID"]==$row["id"]?" disabled":"").">(".$row["username"]." - ".($row["status"]==4?"A":($row["status"]==3?"T":($row["status"]==2?"Sz":"D"))).") ".$row["real_name"]."</option>\n";
+                                    echo "<option value='".$row["id"]."'>(".$row["username"]." - ".($row["rank"]==4?"A":($row["rank"]==3?"T":($row["rank"]==2?"Sz":"D"))).") ".$row["real_name"]."</option>\n";
+                                    $Users.="<option value='".$row["id"]."'".($_SESSION["ID"]==$row["id"]?" disabled":"").">(".$row["username"]." - ".($row["rank"]==4?"A":($row["rank"]==3?"T":($row["rank"]==2?"Sz":"D"))).") ".$row["real_name"]."</option>\n";
                                     if($Default=="")$Default=$row["name"];
                                     }                                    
                                  ?>
@@ -334,7 +334,7 @@ if($_SESSION["ID"]!=-1)
                         <label for="NewT_Student">Tanuló:</label> <select id="NewT_Student" onChange="$('#NewT_Class').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
                             <option value="">-Válassz-</option>
                             <?php
-                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
+                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' ORDER BY real_name ASC");
                                 while($row=mysql_fetch_array($ADAT))
                                     echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
                             ?>
@@ -357,7 +357,7 @@ if($_SESSION["ID"]!=-1)
                     <label for="NewT_Teacher">Tanár:</label> <select id="NewT_Teacher" onChange="if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
                         <option value="">-Válassz-</option>
                         <?php
-                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' ORDER BY real_name ASC");
+                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' ORDER BY real_name ASC");
                             while($row=mysql_fetch_array($ADAT))
                                 echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
                         ?>
@@ -381,19 +381,19 @@ if($_SESSION["ID"]!=-1)
                                 {
                                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' ORDER BY name ASC");
                                 while($row=mysql_fetch_array($ADAT))
-                                    echo "<option value='".$row["id"]."'".(($_SESSION["CLASS"]==$row["id"])?" SELECTED":"").">".$row["name"]." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".$row["id"]."'"))." fő)</option>\n";
+                                    echo "<option value='".$row["id"]."'".(($_SESSION["CLASS"]==$row["id"])?" SELECTED":"").">".$row["name"]." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".$row["id"]."'"))." fő)</option>\n";
                                 }else{
                                 $CLASSES=array();
                                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND tid='".$_SESSION["ID"]."'");
                                 while($row=mysql_fetch_array($ADAT))
                                     if(!in_array($row["class"],$CLASSES) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".$row["class"]."'"))==1)
                                         {
-                                        echo "<option value='".$row["class"]."'".(($_SESSION["CLASS"]==$row["class"])?" SELECTED":"").">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$row["class"]."'"), 0, "name")." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".$row["class"]."'"))." fő)</option>\n";
+                                        echo "<option value='".$row["class"]."'".(($_SESSION["CLASS"]==$row["class"])?" SELECTED":"").">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$row["class"]."'"), 0, "name")." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".$row["class"]."'"))." fő)</option>\n";
                                         $CLASSES[]=$row["class"];
                                         }
                                 if(!in_array($_SESSION["CLASS"],$CLASSES))
                                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".$_SESSION["CLASS"]."'")))
-                                        echo "<option value='".$_SESSION["CLASS"]."' SELECTED>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"), 0, "name")." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".$_SESSION["CLASS"]."'"))." fő)</option>\n";                                    
+                                        echo "<option value='".$_SESSION["CLASS"]."' SELECTED>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"), 0, "name")." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".$_SESSION["CLASS"]."'"))." fő)</option>\n";                                    
                                 }
                             echo '</optgroup></select><div id="Gardes">Kis türelmet...</div>';
                             }else

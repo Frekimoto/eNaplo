@@ -21,7 +21,7 @@ $id=mysql_real_escape_string($_GET["id"]);
 
 if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='$id'")))die('Hiba! Nemlétező felhasználó.');
 
-if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "status")!=1)die("Csak tanuló jogokkal rendelkező felhasználó nyomtatható!");
+if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "rank")!=1)die("Csak tanuló jogokkal rendelkező felhasználó nyomtatható!");
 
 if(!strtotime($_GET["date"]."-1-1"))
 	$date=strtotime(date("Y")."-1-1");
@@ -31,13 +31,13 @@ $LESSONS=array();
 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
 while($row=mysql_fetch_array($ADAT))
 	if(!in_array($row["lesson"],$LESSONS))
-		if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'")))
+		if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'")))
 			array_push($LESSONS,$row["lesson"]);
 				else
 				die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
 sort($LESSONS);
-$A=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (type='2' OR type='3')"));
-$B=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (type='1' OR type='4')"));
+$A=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (typ='2' OR typ='3')"));
+$B=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (typ='1' OR typ='4')"));
 if(isset($_GET["a"]))
 	$A=(int)$_GET["a"];
 if(isset($_GET["b"]))
@@ -70,7 +70,7 @@ if(isset($_GET["b"]))
 				<?php
 				foreach($LESSONS as $text)
 					if($text!="")
-						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND type='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
+						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
 				?>
 			</tr>
 		</table><br />
@@ -99,6 +99,7 @@ if(isset($_GET["b"]))
 				<td width="50%">szülő, gondviselő</td>
 			</tr>
 		</table>
+		<?php echo base64_decode("PGg2PkNyZWF0ZWQgYnk6IDxhIGhyZWY9Imh0dHA6Ly93d3cudC1ib25kLmh1LyIgdGFyZ2V0PSJfYmxhbmsiPlQtYm9uZDwvYT4gLSAyMDEzPC9oNj4="); ?>
 	</body>
 </html>
 	<?php exit;
@@ -113,7 +114,7 @@ switch((int)$_POST["TYPE"])
         if($_POST["U"]=="" or $_POST["P"]=="")
             echo 2;
                 else{
-                $row=@mysql_fetch_array(@mysql_query("SELECT * FROM `$_SYSTEM_USERS_TABLE` WHERE `username` = '".mysql_real_escape_string($_POST['U'])."' AND `password` = '".sha1(md5($_POST['P']))."'"));
+                $row=@mysql_fetch_array(@mysql_query("SELECT * FROM `$_SYSTEM_USERS_TABLE` WHERE `username` = '".mysql_real_escape_string($_POST['U'])."' AND `pass` = '".sha1(md5($_POST['P']))."'"));
                 @mysql_free_result($row);
                 if(!empty($row['id']))
                     {
@@ -139,16 +140,16 @@ switch((int)$_POST["TYPE"])
         $HEAD=array("Órák");
         $LESSONS=array();
         $GARDES=array();
-        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND type!='8' AND type!='9' ORDER BY date ASC");
+        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ!='8' AND typ!='9' ORDER BY added ASC");
         while($row=mysql_fetch_array($ADAT))
             {
             $row["tid"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["tid"]."'"), 0, "real_name");
             array_push($GARDES,$row);
             if(!in_array($row["lesson"],$LESSONS))
                 array_push($LESSONS,$row["lesson"]);
-            $row["date"]=iconv('iso-8859-2','utf-8',strftime("%B",strtotime($row["date"])));
-            if(!in_array($row["date"],$HEAD))
-                array_push($HEAD,$row["date"]);
+            $row["added"]=iconv('iso-8859-2','utf-8',strftime("%B",strtotime($row["added"])));
+            if(!in_array($row["added"],$HEAD))
+                array_push($HEAD,$row["added"]);
             }
         sort($LESSONS);
         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE parent='".$_SESSION["ID"]."'"))>1)
@@ -161,8 +162,8 @@ switch((int)$_POST["TYPE"])
             }
         if(count($HEAD)==1)
             die("<h5>Nincs még érdemjegy.</h5>");
-        $HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND type='8'"));
-        $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND type='9'"));
+        $HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ='8'"));
+        $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ='9'"));
         ?>
         <table border="1" align="center">
             <tr>
@@ -190,21 +191,21 @@ switch((int)$_POST["TYPE"])
                     echo "<td>";
                     foreach($GARDES as $text2)
                         {
-                        if($w=="" and !in_array(date("m",strtotime($text2["date"])),$k))
+                        if($w=="" and !in_array(date("m",strtotime($text2["added"])),$k))
                             {
-                            $w=date("m",strtotime($text2["date"]));
+                            $w=date("m",strtotime($text2["added"]));
                             array_push($k,$w);
                             }
-                        if($text2["lesson"]==$text and date("m",strtotime($text2["date"]))==$w)
+                        if($text2["lesson"]==$text and date("m",strtotime($text2["added"]))==$w)
                             {
-                            echo " <a href='javascript:void(0);' style='color: ".($text2["type"]==1?"green":($text2["type"]==3?"blue":($text2["type"]==4?"red":($text2["type"]==5?"gray":($text2["type"]==6?"yellow":($text2["type"]==7?"brown":"black"))))))."; text-decoration: none;' title='".$text2["date"]." (".$text2["tid"].")".($text2["description"]!=""?" - ":"").$text2["description"]."'>".$text2["value"]."</a>";
-                            if($text2["value"]!="-")
+                            echo " <a href='javascript:void(0);' style='color: ".($text2["typ"]==1?"green":($text2["typ"]==3?"blue":($text2["typ"]==4?"red":($text2["typ"]==5?"gray":($text2["typ"]==6?"yellow":($text2["typ"]==7?"brown":"black"))))))."; text-decoration: none;' title='".$text2["added"]." (".$text2["tid"].")".($text2["description"]!=""?" - ":"").$text2["description"]."'>".$text2["garde"]."</a>";
+                            if($text2["garde"]!="-")
                                 {
-                                $n+=$text2["value"];
+                                $n+=$text2["garde"];
                                 $s++;
-                                if($text2["type"]==4)
+                                if($text2["typ"]==4)
                                     {
-                                    $n+=$text2["value"];
+                                    $n+=$text2["garde"];
                                     $s++;
                                     }
                                 }
@@ -213,7 +214,7 @@ switch((int)$_POST["TYPE"])
                     echo "</td>";
                     }
                 echo "<td>".sprintf("%01.2f", $n/$s)." ~(".round($n/$s).")</td>";
-                echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND type='8'"))==1?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND type='8'"), 0, "description"):"-")."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND type='9'"))==1?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND type='9'"), 0, "description"):"-")."</td>");
+                echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND typ='8'"))==1?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND typ='8'"), 0, "description"):"-")."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND typ='9'"))==1?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".mysql_real_escape_string($text)."' AND uid='".$ID."' AND typ='9'"), 0, "description"):"-")."</td>");
                 echo "</tr>";
                 }
         ?>
@@ -232,14 +233,14 @@ switch((int)$_POST["TYPE"])
             if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".$ID."'"))==0)
                 echo -2;
                     else{
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE class='".$ID."' AND status='1'"))==0)
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE class='".$ID."' AND rank='1'"))==0)
                         die("<h5>Ebbe az osztályba egy tanuló sem jár.</h5>");
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$ID."'"))==0)
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$ID."'"))==0)
 						die("<h5>Ebben az osztályban még senki nem tanul semmit.</h5>");
                     if(isset($_POST["Type"]) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE enabled='1' AND id='".mysql_real_escape_string($_POST["Type"])."'"))>0)
                         $LESSON=$_POST["Type"];
                             else
-                        $LESSON=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$ID."'"), 0, "lesson");
+                        $LESSON=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$ID."'"), 0, "lesson");
                     $HEAD=array();
                     $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":""));
                     while($row=mysql_fetch_array($ADAT))
@@ -257,13 +258,13 @@ switch((int)$_POST["TYPE"])
                         echo "</optgroup></select>";
                         }
                     $HEAD=array();
-                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".$LESSON."' AND type!='8' AND type!='9' AND date>'".date("Y-m-d",$_FROM_DATE)."' AND date<'".date("Y-m-d",$_TO_DATE)."' AND date!='0000-00-00' ORDER BY date ASC");
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE lesson='".$LESSON."' AND typ!='8' AND typ!='9' AND added>'".date("Y-m-d",$_FROM_DATE)."' AND added<'".date("Y-m-d",$_TO_DATE)."' AND added!='0000-00-00' ORDER BY added ASC");
                     while($row=mysql_fetch_array($ADAT))
                         if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
-                            $row["date"]=iconv('iso-8859-2','utf-8',strftime("%B",strtotime($row["date"])));
-                            if(!in_array($row["date"],$HEAD))
-                                array_push($HEAD,$row["date"]);
+                            $row["added"]=iconv('iso-8859-2','utf-8',strftime("%B",strtotime($row["added"])));
+                            if(!in_array($row["added"],$HEAD))
+                                array_push($HEAD,$row["added"]);
                             }
 					$date=date("Y",$_FROM_DATE);
                     ?>
@@ -277,8 +278,8 @@ switch((int)$_POST["TYPE"])
                                 else
                                 foreach($HEAD as $text)
                                     echo "<td>".ucfirst($text)."</td>";
-							$HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND type='8'"));
-                            $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND class='".$ID."' AND type='9'"));
+							$HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND $_SYSTEM_GARDES_TABLE.typ='8'"));
+                            $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.typ='9'"));
                             if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) {
                                 $HALF+=1;
                                 $END+=1;
@@ -323,9 +324,9 @@ switch((int)$_POST["TYPE"])
                         if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
                             $s=0; $n=0;
-                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)?(($HALF-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&firsthalf&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0;' class='Print'>[1]</a></sup>":""):"").($END-1>0?(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))?"<sup><a href='ajax.php?id=".$row["uid"]."&date=".$date."&print' class='Print'>[2]</a></sup>":""):"")):"")."</td>";
+                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='8'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&firsthalf&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0;' class='Print'>[1]</a></sup>":"").(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='9'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0; class='Print'>[2]</a></sup>":"")."</td>";
                             $GARDES=array();
-                            $ADAT2=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9' ORDER BY date ASC");
+                            $ADAT2=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ!='8' AND typ!='9' ORDER BY added ASC");
                             while($row2=mysql_fetch_array($ADAT2))
                                 {
                                 $row2["tid"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row2["tid"]."'"), 0, "real_name");
@@ -335,16 +336,16 @@ switch((int)$_POST["TYPE"])
                                 {
                                 echo "<td>";
                                 foreach($GARDES as $text2)
-                                if(iconv('iso-8859-2','utf-8',strftime("%B",strtotime($text2["date"])))==$text and $text2["type"]!=8 and $text2["type"]!=9)
+                                if(iconv('iso-8859-2','utf-8',strftime("%B",strtotime($text2["added"])))==$text and $text2["added"]!=8 and $text2["added"]!=9)
                                         {
-                                        echo " <a href='javascript:void(0);' onClick=".'"$.post(\'ajax.php\',{TYPE: 14, Id: \''.$text2["id"].'\'},function(data){$(\'#EditGarde\').html(data);});"'." style='color: ".($text2["type"]==1?"green":($text2["type"]==3?"blue":($text2["type"]==4?"red":($text2["type"]==5?"gray":($text2["type"]==6?"yellow":($text2["type"]==7?"brown":"black"))))))."; text-decoration: none;' title='".$text2["date"]." (".$text2["tid"].")".($text2["description"]!=""?" - ":"").$text2["description"]."'>".$text2["value"]."</a>";
-                                        if($text2["value"]!="-")
+                                        echo " <a href='javascript:void(0);' onClick=".'"$.post(\'ajax.php\',{TYPE: 14, Id: \''.$text2["id"].'\'},function(data){$(\'#EditGarde\').html(data);});"'." style='color: ".($text2["typ"]==1?"green":($text2["typ"]==3?"blue":($text2["typ"]==4?"red":($text2["typ"]==5?"gray":($text2["typ"]==6?"yellow":($text2["typ"]==7?"brown":"black"))))))."; text-decoration: none;' title='".$text2["added"]." (".$text2["tid"].")".($text2["description"]!=""?" - ":"").$text2["description"]."'>".$text2["garde"]."</a>";
+                                        if($text2["garde"]!="-")
                                             {
-                                            $n+=$text2["value"];
+                                            $n+=$text2["garde"];
                                             $s++;
-                                            if($text2["type"]==4)
+                                            if($text2["typ"]==4)
                                                 {
-                                                $n+=$text2["value"];
+                                                $n+=$text2["garde"];
                                                 $s++;
                                                 }
                                             }
@@ -353,8 +354,8 @@ switch((int)$_POST["TYPE"])
                                     echo "(-)";
                                 echo "</td>";
                                 }
-                            $NUMBER=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type!='8' AND type!='9'"))>1?1:0;
-                            echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND type='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
+                            $NUMBER=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ!='8' AND typ!='9'"))>1?1:0;
+                            echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
                             ?>
                             <td class="EditTd">
                                 <select class="Type" name="<?php echo $row["uid"]; ?>_TYPE">
@@ -546,8 +547,8 @@ switch((int)$_POST["TYPE"])
                                 else{
                                 $P=sha1(md5($_POST['P']));
                                 $NP=sha1(md5($_POST['NP']));
-                                if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_SESSION["ID"])."'"), 0, "password")==$P)
-                                    echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `password`='".$NP."' WHERE id='".mysql_real_escape_string($_SESSION["ID"])."' AND password='".$P."' LIMIT 1;");
+                                if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_SESSION["ID"])."'"), 0, "pass")==$P)
+                                    echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `pass`='".$NP."' WHERE id='".mysql_real_escape_string($_SESSION["ID"])."' AND pass='".$P."' LIMIT 1;");
                                     else
                                     echo -3;
                                 }
@@ -568,7 +569,7 @@ switch((int)$_POST["TYPE"])
             exit;
             }        
         if(isset($_POST["Data"]) and isset($_POST["Type"]))
-            if($_POST["Data"]!="" and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE (status='3' OR status='4') AND id='".mysql_real_escape_string($_SESSION["ID"])."'"))==1 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Type"])."'"))==1)
+            if($_POST["Data"]!="" and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE (rank='3' OR rank='4') AND id='".mysql_real_escape_string($_SESSION["ID"])."'"))==1 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Type"])."'"))==1)
                 {
                 $Data=explode("&",$_POST["Data"]);
                 foreach($Data as $text=>$text2)
@@ -613,7 +614,7 @@ switch((int)$_POST["TYPE"])
                                     {
                                     case "1": case "2": case "3": case "4": case "5": case "6": case "7": case "8": case "9":
                                         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($ID)."'"))==1)
-                                            echo mysql_query("INSERT `$_SYSTEM_GARDES_TABLE` (`id`, `uid`, `tid`, `date`, `description`, `value`, `lesson`, `type`) VALUES ( NULL, '".mysql_real_escape_string($ID)."', '".mysql_real_escape_string($_SESSION["ID"])."', '".mysql_real_escape_string($Dat)."', '".mysql_real_escape_string(urldecode($Des))."', '".mysql_real_escape_string($Value)."', '".mysql_real_escape_string($_POST["Type"])."', '".mysql_real_escape_string($Type)."')");
+                                            echo mysql_query("INSERT `$_SYSTEM_GARDES_TABLE` (`id`, `uid`, `tid`, `added`, `description`, `garde`, `lesson`, `typ`) VALUES ( NULL, '".mysql_real_escape_string($ID)."', '".mysql_real_escape_string($_SESSION["ID"])."', '".mysql_real_escape_string($Dat)."', '".mysql_real_escape_string(urldecode($Des))."', '".mysql_real_escape_string($Value)."', '".mysql_real_escape_string($_POST["Type"])."', '".mysql_real_escape_string($Type)."')");
                                         break;
                                     default:
                                         echo -1;
@@ -649,7 +650,7 @@ switch((int)$_POST["TYPE"])
                     $UN = $row["username"];
                     $RN = $row["real_name"];
 					$OM	= $row["om_id"];
-                    $R  = $row["status"];
+                    $R  = $row["rank"];
                     $P  = $row["parent"];
                     $C  = $row["class"];
                     }
@@ -669,13 +670,13 @@ switch((int)$_POST["TYPE"])
                         </optgroup>
                 </select><br />
                 <div id="Student"<?php echo ($U!=-1)?(($R==1)?"":" style=\"display: none;\""):""; ?>>
-                    <div class="Parent"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='2'"))>0?'':' style="display: none"'; ?>>
+                    <div class="Parent"<?php echo mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='2'"))>0?'':' style="display: none"'; ?>>
                         <label for="Parent_To_Student">Szülő:</label> 
                         <select id="Parent_To_Student" name="PAR">
                             <optgroup label='Válasszon szülőt!'>
                                 <option value="0"> - </option>
                                     <?php
-                                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='2' ORDER BY real_name ASC");
+                                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='2' ORDER BY real_name ASC");
                                     while($row=mysql_fetch_array($ADAT))
                                         echo "<option value='".$row["id"]."'".(($U!=-1)?(($P==$row["id"])?" selected=\"selected\"":""):"").">(".$row["username"].") ".$row["real_name"]."</option>\n";
                                     ?>
@@ -757,8 +758,8 @@ switch((int)$_POST["TYPE"])
 									else{
 									$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
 									$C=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0;
-									$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
-									if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `password`, `om_id`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', '".mysql_real_escape_string($Data["OM"])."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
+									$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND rank!='1'"))==1)?$Data["PAR"]:0):0;
+									if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `pass`, `om_id`, `added`, `class`, `parent`, `rank`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', '".mysql_real_escape_string($Data["OM"])."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
 										echo -1;
 											else
 											echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"), 0, "id");
@@ -805,8 +806,8 @@ switch((int)$_POST["TYPE"])
 												{
 												$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
 												$C=$C==0?0:(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0);
-												$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND status!='1'"))==1)?$Data["PAR"]:0):0;
-												echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', status='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", password='".sha1(md5($Data["PAS"]))."'").", om_id='".mysql_real_escape_string($Data["OM"])."' WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
+												$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND rank!='1'"))==1)?$Data["PAR"]:0):0;
+												echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', rank='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", pass='".sha1(md5($Data["PAS"]))."'").", om_id='".mysql_real_escape_string($Data["OM"])."' WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
 												}else
 												echo -3;
                     }
@@ -860,7 +861,7 @@ switch((int)$_POST["TYPE"])
                     $j.="<option value='".$row["id"]."'".(($CLASS==$row["id"] and $TYPE!=1)?" SELECTED":"").">".$row["name"]."</option>\n";
                     $jj+=1;
                 }
-            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' ORDER BY real_name ASC");
+            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' ORDER BY real_name ASC");
             while($row=mysql_fetch_array($ADAT))
                 if(@mysql_num_rows(@mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE tid='".$row["id"]."'"))!=0) {
                     $i.="<option value='".$row["id"]."'".(($ID==$row["id"] and $TYPE==1)?" SELECTED":"").">".$row["real_name"]."</option>\n";
@@ -870,13 +871,13 @@ switch((int)$_POST["TYPE"])
             $j="";
             $jj=0;
             for($i=strtotime("Monday",$_FROM_DATE); $i<=$_TO_DATE; $i=strtotime("+1 week",$i))
-                if(@mysql_num_rows(@mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE ".$WHERE." AND `from` <= '".date("Y-m-d",strtotime("+6 day",$i))."' AND (`to` >= '".date("Y-m-d",$i)."' OR `to`='0000-00-00')"))!=0) {
+                if(@mysql_num_rows(@mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE ".$WHERE." AND `fromd` <= '".date("Y-m-d",strtotime("+6 day",$i))."' AND (`tod` >= '".date("Y-m-d",$i)."' OR `tod`='0000-00-00')"))!=0) {
                     $j.="<option value='".date('Y-m-d', $i)."'".(date('Y-m-d', $i)==date('Y-m-d', $DATE)?" SELECTED":"").">".date('Y-m-d', $i)." - ".date('Y-m-d', strtotime("+6 day",$i))."</option>";
                     $jj+=1;
                 }
             echo '<td'.($jj>1?'':' style="display: none;"').'><label for="Timetable_Date">Dátum:</label> <select id="Timetable_Date" onChange="if($(\'#Select_TimeTable_Classes :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(\'#Select_TimeTable_Classes :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); else if($(\'#Select_TimeTable_Teacher :selected\').val()!=\'-\')$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(\'#Select_TimeTable_Teacher :selected\').val(), Date: $(this).val()},function(data){$(\'#DTimetable\').html(data);}); $(\'#Timetable_Button\').attr(\'disabled\', ($(this).val()==\''.date("Y-m-d",$THIS).'\'));">'.
                  $j."</select><input type=\"Button\" id=\"Timetable_Button\" onClick=\"\$('#Timetable_Date option[value=\'".date('Y-m-d',$THIS)."\']').attr('selected', 'selected').change();\" value=\"Ma\"".(date("Y-m-d",$DATE)==date('Y-m-d',$THIS)?' disabled="disabled"':'')."/></td></tr></table>";
-            $SELECT="SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE ".$WHERE." AND `from` <= '".date("Y-m-d",$DATEEND)."' AND (`to` >= '".date("Y-m-d",$DATE)."' OR `to`='0000-00-00')";
+            $SELECT="SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE ".$WHERE." AND `fromd` <= '".date("Y-m-d",$DATEEND)."' AND (`tod` >= '".date("Y-m-d",$DATE)."' OR `tod`='0000-00-00')";
             if(@mysql_num_rows(@mysql_query($SELECT))==0)
                 {
                 switch((int)$TYPE)
@@ -930,8 +931,8 @@ switch((int)$_POST["TYPE"])
                     if(!is_string($key))
                         unset($row[$key]);
                 $DATES[]=$row;
-                if(!in_array($row["day"],$HEAD))
-                array_push($HEAD,$row["day"]);
+                if(!in_array($row["dayn"],$HEAD))
+                array_push($HEAD,$row["dayn"]);
                 if($NMI=="")$NMI=$row["number"]; else
                 if($NMI>$row["number"])$NMI=$row["number"];
                 if($NMA=="")$NMA=$row["number"]; else
@@ -954,7 +955,7 @@ switch((int)$_POST["TYPE"])
                         {
                         $Des="";
                         foreach($DATES as $array)
-                            if($array["day"]==$HEAD[$a] and $array["number"]==$i)
+                            if($array["dayn"]==$HEAD[$a] and $array["number"]==$i)
                                 $Des.=($_SESSION["RANK"]==4?"<a href=\"javascript:void(0);\" onClick=\"\$.post('ajax.php',{TYPE: 16, Id: '".$array["id"]."'},function(data){\$('#EditTimetable').html(data);});\" style=\"color: black; text-decoration: none;\">".$array["description"]."</a>":$array["description"]);
                         echo "<td".(($Des=="" and $_SESSION["RANK"]==4)?" onClick=\"\$('#Other_Manager').show('fast'); \$('#NewT_Day option[value=\'".($a+1)."\'],#NewT_Class option[value=\'".($TYPE==2?$ID:"")."\'],#NewT_Student option[value=\'".($TYPE==3?$ID:"")."\'],#NewT_Lesson option[value=\'\'],#NewT_Teacher option[value=\'".($TYPE==1?$ID:"")."\']').attr('selected', 'selected'); \$('#NewT_Lesson_Number').val('".$i."'); \$('#NewT_From').val('".date("Y-m-d")."'); \$('#NewT_To').val('0000-00-00'); \$('#Timetable_Manager').show('fast'); \$('#Timetable').hide('fast'); \$('#Lesson_Manager').hide('fast'); $('#User_Manager').hide('fast'); \$('#Class_Manager').hide('fast');\"":"").">".$Des."</td>";
                         }
@@ -982,19 +983,19 @@ switch((int)$_POST["TYPE"])
                 {
                 if($_POST["Data7"]=="")
                     $_POST["Data7"]="0000-00-00";
-                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
+                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
                     {
                     echo -1;
                     exit;
                     }
                 if($_POST["Type"]=="1")
                     {
-                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
+                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
                         {
                         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Data"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
                             if(mysql_query($QUERY))
-                                echo mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($_POST["Data"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
+                                echo mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `class`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data2"])."')");
                                 else
                                 echo -1;
                             else
@@ -1003,8 +1004,8 @@ switch((int)$_POST["TYPE"])
                         echo -1;
                     }else{
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."'"))==1) {
-                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
-                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
+                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
+                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
                             while($row=mysql_fetch_array($ADAT))
                                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($row["id"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
                                     mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($row["id"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
@@ -1033,6 +1034,7 @@ switch((int)$_POST["TYPE"])
         if(!isset($_POST["Id"]))
             echo "Hiba!";
             else{
+			if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."' LIMIT 1"))!=1)die("Nem található a keresett értékelő.");
             if(isset($_POST["Type"]) and isset($_POST["Value"]))
                 $ID=mysql_real_escape_string(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."' LIMIT 1"), 0, "class"));
                 else
@@ -1040,12 +1042,12 @@ switch((int)$_POST["TYPE"])
             if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$ID."'"))==0)
                 echo -2;
                     else{
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE class='".$ID."' AND status='1'"))==0)
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE class='".$ID."' AND rank='1'"))==0)
                         {
                         echo "<h5>Ebbe az osztályba egy tanuló sem jár.</h5>";
                         exit;
                         }
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$ID."'"))==0)
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$ID."'"))==0)
                         {
                         echo "<h5>Ebben az osztályban még senki nem tanul semmit.</h5>";
                         exit;
@@ -1064,10 +1066,10 @@ switch((int)$_POST["TYPE"])
                     $U      = $row["tid"];
                     $UN     = $row["uid"];
                     $RN     = $row["description"];
-                    $Value  = $row["value"];
-                    $P      = $row["date"];
+                    $Value  = $row["garde"];
+                    $P      = $row["added"];
                     $C      = $row["lesson"];
-                    $Type   = $row["type"];
+                    $Type   = $row["typ"];
                     }
                 }
             $TYPE=($Type==8 or $Type==9)?1:0;
@@ -1138,9 +1140,9 @@ switch((int)$_POST["TYPE"])
                                 $Dat=$Dat;
                                 else
                                 $Dat=date("Y-m-d");
-                            echo mysql_query("UPDATE $_SYSTEM_GARDES_TABLE SET `tid`='".mysql_real_escape_string($_SESSION["ID"])."', `value`='".mysql_real_escape_string($_POST["VALUE"])."', `date`='".mysql_real_escape_string($Dat)."', `type`='".mysql_real_escape_string($_POST["Type"])."', `description`='".mysql_real_escape_string($_POST["DESC"])."' WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
+                            echo mysql_query("UPDATE $_SYSTEM_GARDES_TABLE SET `tid`='".mysql_real_escape_string($_SESSION["ID"])."', `garde`='".mysql_real_escape_string($_POST["VALUE"])."', `added`='".mysql_real_escape_string($Dat)."', `typ`='".mysql_real_escape_string($_POST["Type"])."', `description`='".mysql_real_escape_string($_POST["DESC"])."' WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
                             }else
-                            echo mysql_query("UPDATE $_SYSTEM_GARDES_TABLE SET `date`='".mysql_real_escape_string(date("Y-m-d"))."', `tid`='".mysql_real_escape_string($_SESSION["ID"])."', `description`='".mysql_real_escape_string($_POST["DESC"])."' WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
+                            echo mysql_query("UPDATE $_SYSTEM_GARDES_TABLE SET `added`='".mysql_real_escape_string(date("Y-m-d"))."', `tid`='".mysql_real_escape_string($_SESSION["ID"])."', `description`='".mysql_real_escape_string($_POST["DESC"])."' WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
                         break;
                     default:
                         echo -1;
@@ -1171,11 +1173,11 @@ switch((int)$_POST["TYPE"])
                 echo '<table border="1" align="Center">'.
                     '<tr><td>Hét napja</td><td><select id="EditT_Day" onChange="$(\'#EditT_Lesson_Number\').val(1);"><option value="-">-Törlés-</option>';
                     for($i=1; $i<=7; $i++)
-                        echo '<option value="'.$i.'"'.($row2["day"]==$i?" SELECTED":"").'>'.iconv('iso-8859-2','utf-8',strftime("%A",strtotime(date("l",mktime(0,0,0,7,$i,2013))))).'</option>';
+                        echo '<option value="'.$i.'"'.($row2["dayn"]==$i?" SELECTED":"").'>'.iconv('iso-8859-2','utf-8',strftime("%A",strtotime(date("l",mktime(0,0,0,7,$i,2013))))).'</option>';
                 echo '</select></td></tr>'.
-                    '<tr><td>Óra száma</td><td><input type="number" id="EditT_Lesson_Number" maxlength="2" size="2" max="15" min="0" value="1" /></td></tr>'.
+                    '<tr><td>Óra száma</td><td><input type="number" id="EditT_Lesson_Number" maxlength="2" size="2" max="15" min="0" value="'.$row2["number"].'" /></td></tr>'.
                     '<tr><td>Tanuló</td><td><select id="EditT_Student" onChange="$(\'#EditT_Class\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
-                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' ORDER BY real_name ASC");
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' ORDER BY real_name ASC");
                     while($row=mysql_fetch_array($ADAT))
                         echo '<option value="'.$row["id"].'"'.($row2["uid"]==$row["id"]?" SELECTED":"").'>'.$row["real_name"].'</option>\n';
                 echo '</select></td></tr>'.
@@ -1190,13 +1192,13 @@ switch((int)$_POST["TYPE"])
                         echo '<option value="'.$row["id"].'"'.($row2["lesson"]==$row["id"]?" SELECTED":"").'>'.$row["name"].'</option>\n';
                 echo '</select></td></tr>'.
                     '<tr><td>Tanár</td><td><select id="EditT_Teacher" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"><option value="">-Válassz-</option>';
-                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' ORDER BY real_name ASC");
+                    $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' ORDER BY real_name ASC");
                     while($row=mysql_fetch_array($ADAT))
                         echo '<option value="'.$row["id"].'"'.($row2["tid"]==$row["id"]?" SELECTED":"").'>'.$row["real_name"].'</option>\n';
                 echo '</select></td></tr>'.
-                    '<tr><td>Kezdete</td><td><input type="Date" id="EditT_From" value="'.$row2["from"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"/></td></tr>'.
-                    '<tr><td>Vége</td><td><input type="Date" id="EditT_To" value="'.$row2["to"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'"/></td></tr>'.
-                    '<tr><td><input type="Button" onClick="$(\'#EditTimetable\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="if($(\'#EditT_Day :selected\').val()==\'-\') alert(\'Törlés\'); else alert(\'Sajnos még nincs hatása!\');" value="Módosít"/></td></tr>'.
+                    '<tr><td>Kezdete</td><td><input type="Date" id="EditT_From" value="'.$row2["fromd"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'" onChange="if($(\'#EditT_Teacher option:selected\').val()!=\'\' && $(\'#EditT_From\').val()!=\'\' && $(\'#EditT_Lesson option:selected\').val()!=\'\' && ($(\'#EditT_Student option:selected\').val()!=\'\' || $(\'#EditT_Class option:selected\').val()!=\'\'))$(\'#EditT_Button\').attr(\'disabled\',false); else $(\'#EditT_Button\').attr(\'disabled\',true);"/></td></tr>'.
+                    '<tr><td>Vége</td><td><input type="Date" id="EditT_To" value="'.$row2["tod"].'" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'"/></td></tr>'.
+                    '<tr><td><input type="Button" onClick="$(\'#EditTimetable\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="if($(\'#EditT_Day :selected\').val()==\'-\')alert(\'Törlés!\'); else alert(\'Sajnos még nincs hatása!\');" value="Módosít"/></td></tr>'.
                     '</table>';
             }
             }
@@ -1218,15 +1220,15 @@ switch((int)$_POST["TYPE"])
                 {
                 if($_POST["Data7"]=="")
                     $_POST["Data7"]="0000-00-00";
-                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
+                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
                     {
-                    echo -12;
+                    echo -1;
                     exit;
                     }
                 if($_POST["Type"]=="1")
                     {
-                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
-                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
+                    $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
+                    if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND id='".mysql_real_escape_string($_POST["Data"])."'"))==1)
                         {
                         if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Data"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
                             if(mysql_query($QUERY))
@@ -1239,8 +1241,8 @@ switch((int)$_POST["TYPE"])
                         echo -1;
                     }else{
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."'"))==1) {
-                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `type`, `lesson`, `parent`, `day`, `number`, `from`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
-                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE status='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
+                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `to`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
+                            $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
                             while($row=mysql_fetch_array($ADAT))
                                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($row["id"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
                                     mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($row["id"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
