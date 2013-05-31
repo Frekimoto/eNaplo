@@ -744,13 +744,13 @@ switch((int)$_POST["TYPE"])
         if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]) or !isset($Data["OM"]))
             echo -1;
             else
-            if($Data["UN"]=="" or $Data["RN"]=="" or $Data["PAS"]=="" or (string)$Data["OM"]=="")
+            if($Data["UN"]=="" or $Data["RN"]=="" or $Data["PAS"]=="" or ((string)$Data["R"]=="1" and (string)$Data["OM"]==""))
                 echo -2;
                 else
-				if(strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7")
+				if((strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7") and (string)$Data["R"]=="1")
 					echo -4;
 						else
-						if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."'"))==1)
+						if((string)$Data["R"]=="1" and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."'"))==1)
 						 echo -5;
 							else
 							if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"))==1)
