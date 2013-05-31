@@ -99,7 +99,7 @@ if(isset($_GET["b"]))
 				<td width="50%">szülő, gondviselő</td>
 			</tr>
 		</table>
-		<?php echo base64_decode("PGg2PkNyZWF0ZWQgYnk6IDxhIGhyZWY9Imh0dHA6Ly93d3cudC1ib25kLmh1LyIgdGFyZ2V0PSJfYmxhbmsiPlQtYm9uZDwvYT4gLSAyMDEzPC9oNj4="); ?>
+		<?php echo base64_decode("PGRpdiBjbGFzcz0iZm9vdGVyIj48aDY+Q3JlYXRlZCBieTogPGEgaHJlZj0iaHR0cDovL3d3dy50LWJvbmQuaHUvIiB0YXJnZXQ9Il9ibGFuayI+VC1ib25kPC9hPiAtIDIwMTM8L2g2PjwvZGl2Pg=="); ?>
 	</body>
 </html>
 	<?php exit;

@@ -402,7 +402,7 @@ if($_SESSION["ID"]!=-1)
                 ?>
             </div>
         <?php } ?>
-    <br /><?php echo base64_decode("PGg2PkNyZWF0ZWQgYnk6IDxhIGhyZWY9Imh0dHA6Ly93d3cudC1ib25kLmh1LyIgdGFyZ2V0PSJfYmxhbmsiPlQtYm9uZDwvYT4gLSAyMDEzPC9oNj4="); ?>
+    <br /><?php echo base64_decode("PGRpdiBjbGFzcz0iZm9vdGVyIj48aDY+Q3JlYXRlZCBieTogPGEgaHJlZj0iaHR0cDovL3d3dy50LWJvbmQuaHUvIiB0YXJnZXQ9Il9ibGFuayI+VC1ib25kPC9hPiAtIDIwMTM8YnIgLz5EZXNpZ25lZCBieTogPGEgaHJlZj0iaHR0cDovL3VzZXJzLmF0dy5odS9ob3J2d2ViLyIgdGFyZ2V0PSJfYmxhbmsiPkhvcnY8L2E+PC9oNj48L2Rpdj4="); ?>
     </body>
 </html>
 <?php
