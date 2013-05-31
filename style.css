@@ -5,6 +5,22 @@ width: 100%;
 display: block;
 text-align: center;
 }
+a{ 
+text-decoration: none;
+color: black;
+font-size: 25px;
+padding: 10px;
+}
+a:visited {color: black;}
+a:hover {color: #FF0000;}
+
+a.footer{
+/*Footer linkek*/
+}
+
+input:hover{
+border-color: #FF0000;
+}
 
 .login
 {
@@ -34,5 +50,5 @@ color: red;
 }
 .EditTd
 {
-display: none; /* none: Jegyszerkeztõ elrejtése alapértelmezetten / block: Jegyszerkeztõ alapértelmezett megjelenítése */
+display: none; /* none: Jegyszerkezto elrejtése alapértelmezetten / block: Jegyszerkezto alapértelmezett megjelenítése */
 }
