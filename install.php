@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."certificates` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `uid` bigint(20) NOT NULL,
   `tid` bigint(20) NOT NULL,
-  `type` enum('1','2','3','4') NOT NULL DEFAULT '1',
+  `typ` enum('1','2','3','4') NOT NULL DEFAULT '1',
   `description` text NOT NULL,
-  `value` int(11) NOT NULL DEFAULT '1',
-  `from` int(11) NOT NULL DEFAULT '1',
-  `to` int(11) NOT NULL DEFAULT '1',
+  `delay` int(11) NOT NULL DEFAULT '1',
+  `fromc` int(11) NOT NULL DEFAULT '1',
+  `toc` int(11) NOT NULL DEFAULT '1',
   `fromdate` date NOT NULL,
   `todate` date NOT NULL,
   PRIMARY KEY (`id`)
@@ -61,20 +61,20 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."classes` (
   `name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 DROP TABLE IF EXISTS `".$Prefix."gardes`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."gardes` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `uid` bigint(20) NOT NULL,
   `tid` bigint(20) NOT NULL,
-  `date` date NOT NULL,
+  `added` date NOT NULL,
   `description` varchar(100) NOT NULL,
-  `value` enum('-','1','2','3','4','5') NOT NULL,
+  `garde` enum('-','1','2','3','4','5') NOT NULL,
   `lesson` bigint(20) NOT NULL,
-  `type` enum('1','2','3','4','5','6','7','8','9') NOT NULL DEFAULT '1',
+  `typ` enum('1','2','3','4','5','6','7','8','9') NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=7 ;
 
 DROP TABLE IF EXISTS `".$Prefix."lessons`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."lessons` (
@@ -82,47 +82,49 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."lessons` (
   `name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
 DROP TABLE IF EXISTS `".$Prefix."teaches`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."teaches` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `tid` bigint(20) NOT NULL,
   `uid` bigint(20) NOT NULL,
+  `class` bigint(20) NOT NULL,
   `lesson` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
 
 DROP TABLE IF EXISTS `".$Prefix."timetable`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."timetable` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `class` bigint(11) NOT NULL,
-  `uid` bigint(11) NOT NULL,
-  `tid` bigint(11) NOT NULL,
-  `type` bigint(11) NOT NULL,
-  `lesson` bigint(11) NOT NULL,
-  `parent` bigint(11) NOT NULL DEFAULT '0',
+  `class` int(11) NOT NULL,
+  `tid` int(11) NOT NULL,
+  `uid` bigint(20) NOT NULL,
+  `typ` int(11) NOT NULL,
+  `lesson` bigint(20) NOT NULL,
+  `parent` int(11) NOT NULL DEFAULT '0',
   `description` varchar(32) NOT NULL,
-  `day` enum('1','2','3','4','5','6','7') NOT NULL DEFAULT '1',
+  `dayn` enum('1','2','3','4','5','6','7') NOT NULL DEFAULT '1',
   `number` int(11) NOT NULL,
-  `from` date NOT NULL,
-  `to` date NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT AUTO_INCREMENT=1 ;
+  `fromd` date NOT NULL,
+  `tod` date NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `day` (`dayn`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT AUTO_INCREMENT=2 ;
 
 DROP TABLE IF EXISTS `".$Prefix."users`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."users` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `username` varchar(32) NOT NULL,
   `real_name` varchar(32) NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `om_id` bigint(11) NULL DEFAULT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `pass` varchar(100) NOT NULL,
+  `om_id` bigint(11) DEFAULT NULL,
+  `added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `class` bigint(20) NOT NULL,
   `parent` bigint(20) NOT NULL,
-  `status` int(1) NOT NULL DEFAULT '1',
+  `rank` int(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;";
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;";
 	$SQL=explode(';',$SQL);
 	foreach($SQL as $index => $sql)
 		mysql_query($sql);    
