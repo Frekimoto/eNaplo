@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."certificates` (
   `fromdate` date NOT NULL,
   `todate` date NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `".$Prefix."classes`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."classes` (
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."classes` (
   `name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `".$Prefix."gardes`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."gardes` (
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."gardes` (
   `lesson` bigint(20) NOT NULL,
   `typ` enum('1','2','3','4','5','6','7','8','9') NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=7 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `".$Prefix."lessons`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."lessons` (
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."lessons` (
   `name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `".$Prefix."teaches`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."teaches` (
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."teaches` (
   `class` bigint(20) NOT NULL,
   `lesson` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `".$Prefix."timetable`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."timetable` (
@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."timetable` (
   `tod` date NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `day` (`dayn`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 DROP TABLE IF EXISTS `".$Prefix."users`;
 CREATE TABLE IF NOT EXISTS `".$Prefix."users` (
@@ -124,11 +124,11 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."users` (
   `parent` bigint(20) NOT NULL,
   `rank` int(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=8 ;";
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 	$SQL=explode(';',$SQL);
 	foreach($SQL as $index => $sql)
 		mysql_query($sql);    
-   echo mysql_query("INSERT `".$Prefix."users` (`id`, `username`, `real_name`, `password`, `om_id`, `date`, `class`, `parent`, `status`) VALUES ( NULL, '".mysql_real_escape_string($_POST["UN"])."', '".mysql_real_escape_string($_POST["RL"])."', '".sha1(md5($_POST["PA"]))."', NULL, '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '0', '0', '4')");
+   echo mysql_query("INSERT `".$Prefix."users` (`id`, `username`, `real_name`, `pass`, `om_id`, `added`, `class`, `parent`, `rank`) VALUES ( NULL, '".mysql_real_escape_string($_POST["UN"])."', '".mysql_real_escape_string($_POST["RL"])."', '".sha1(md5($_POST["PA"]))."', NULL, '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '0', '0', '4')");
     $_SESSION["ID"]=mysql_result(mysql_query("SELECT * FROM `".$Prefix."users` WHERE username='".mysql_real_escape_string($_POST["UN"])."'"), 0, "id");
     exit;
     }
