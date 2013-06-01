@@ -5,14 +5,14 @@ width: 100%;
 display: block;
 text-align: center;
 }
-a{ 
+.Menu, .Sub-Menu a{ 
 text-decoration: none;
 color: black;
 font-size: 25px;
 padding: 10px;
 }
-a:visited {color: black;}
-a:hover {color: #FF0000;}
+.Menu, .Sub-Menu a:visited {color: black;}
+.Menu, .Sub-Menu a:hover {color: #FF0000;}
 
 a.footer{
 /*Footer linkek*/
