@@ -18,5 +18,6 @@ mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `type`  `typ` I
 mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `from`  `fromd` DATE NOT NULL ;");
 mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `to`  `tod` DATE NOT NULL ;");
 mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `day`  `dayn` ENUM(  '1',  '2',  '3',  '4',  '5',  '6',  '7' ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  '1';");
+mysql_query("ALTER TABLE ".$_SYSTEM_TIMETABLE_TABLE." DROP INDEX day;");
 ?>
 Megtettem amit lehetett :)

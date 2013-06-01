@@ -967,27 +967,15 @@ switch((int)$_POST["TYPE"])
             <?php
             break;
     case 13: //Add timetable
-        if($_SESSION["ID"]==-1)
-            {
-            echo "Hiba!";
-            exit;
-            }
-        if($_SESSION["RANK"]!=4)
-            {
-            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
-            exit;
-            }
+        if($_SESSION["ID"]==-1)die("Hiba!");
+        if($_SESSION["RANK"]!=4)die("Csalunk? Csalunk? Nincs hozzá jogod!");
         if(isset($_POST["Type"]) and isset($_POST["Data"]) and isset($_POST["Data2"]) and isset($_POST["Data3"]) and isset($_POST["Data4"]) and isset($_POST["Data5"]) and isset($_POST["Data6"]) and isset($_POST["Data7"]) and isset($_POST["Data8"]))
             {
             if($_POST["Type"]!="" and $_POST["Data"]!="" and $_POST["Data2"]!="" and $_POST["Data3"]!="" and $_POST["Data4"]!="" and $_POST["Data5"]!="" and $_POST["Data6"]!="" and $_POST["Data8"]!="")
                 {
                 if($_POST["Data7"]=="")
                     $_POST["Data7"]="0000-00-00";
-                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)
-                    {
-                    echo -1;
-                    exit;
-                    }
+                if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".mysql_real_escape_string($_POST["Data2"])."'"))!=1 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='3' AND id='".mysql_real_escape_string($_POST["Data3"])."'"))!=1)die("-1");
                 if($_POST["Type"]=="1")
                     {
                     $QUERY="INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".(strtotime($_POST["Data6"])>strtotime($_POST["Data7"])?mysql_real_escape_string($_POST["Data6"]):mysql_real_escape_string($_POST["Data7"]))."');";
@@ -997,28 +985,28 @@ switch((int)$_POST["TYPE"])
                             if(mysql_query($QUERY))
                                 echo mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `class`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data2"])."')");
                                 else
-                                echo -1;
+                                echo -2;
                             else
                             echo mysql_query($QUERY);
                         }else
-                        echo -1;
+                        echo -3;
                     }else{
                     if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($_POST["Data"])."'"))==1) {
-                        if(mysql_query("INSERT `$_SYSTEM_TIMETABLE_TABLE` (`id`, `class`, `uid`, `tid`, `typ`, `lesson`, `parent`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL, '".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."', '".mysql_real_escape_string($_POST["Data3"])."', '0', '".mysql_real_escape_string($_POST["Data2"])."', '0', '".mysql_real_escape_string($_POST["Data4"])."', '".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."');")) {
+                        if(mysql_query("INSERT INTO `$_SYSTEM_TIMETABLE_TABLE`(`id`, `class`, `tid`, `uid`, `typ`, `lesson`, `parent`, `description`, `dayn`, `number`, `fromd`, `tod`) VALUES (NULL,'".((string)$_POST["Data8"]=="1"?mysql_real_escape_string($_POST["Data"]):0)."','".mysql_real_escape_string($_POST["Data3"])."','".((string)$_POST["Data8"]!="1"?mysql_real_escape_string($_POST["Data"]):0)."','0','".mysql_real_escape_string($_POST["Data2"])."','0','','".mysql_real_escape_string($_POST["Data4"])."','".mysql_real_escape_string($_POST["Data5"])."', '".mysql_real_escape_string($_POST["Data6"])."', '".((strtotime($_POST["Data6"])<strtotime($_POST["Data7"]) or $_POST["Data7"]=="0000-00-00")?mysql_real_escape_string($_POST["Data7"]):mysql_real_escape_string($_POST["Data6"]))."')")) {
                             $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".mysql_real_escape_string($_POST["Data"])."'");
                             while($row=mysql_fetch_array($ADAT))
                                 if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE uid='".mysql_real_escape_string($row["id"])."' AND tid='".mysql_real_escape_string($_POST["Data3"])."' AND lesson='".mysql_real_escape_string($_POST["Data2"])."'"))!=1)
                                     mysql_query("INSERT `$_SYSTEM_TEACHES_TABLE` (`id`, `tid`, `uid`, `lesson`) VALUES (NULL, '".mysql_real_escape_string($_POST["Data3"])."', '".mysql_real_escape_string($row["id"])."', '".mysql_real_escape_string($_POST["Data2"])."')");
                             echo 1;
                         }else
-                        echo -1;
+                        echo -4;
                     }else
-                    echo -1;
+                    echo -5;
                 }
             }else
-            echo -1;
+            echo -6;
             }else
-            echo -1;
+            echo -7;
         break;
     case 14: //Load garde editor
      if($_SESSION["ID"]==-1)
