@@ -5,21 +5,73 @@ width: 100%;
 display: block;
 text-align: center;
 }
-.Menu, .Sub-Menu a{ 
+.Menu a{ 
 text-decoration: none;
 color: black;
 font-size: 25px;
 padding: 10px;
 }
-.Menu, .Sub-Menu a:visited {color: black;}
-.Menu, .Sub-Menu a:hover {color: #FF0000;}
-
-a.footer{
-/*Footer linkek*/
+.Sub-Menu a { 
+text-decoration: none;
+color: black;
+font-size: 20px;
+padding: 10px;
 }
+.Menu a, .Sub-Menu a:visited {color: black;}
+.Menu a:hover, .Sub-Menu a:hover { color: #FF0000;}
 
+div.footer{
+background: black;
+color: white;
+
+}
+div.footer a {
+    color: white;
+}
+/**
+Táblázat design
+*/
+table{
+    border: 1px solid black;
+    border-radius: 3px;
+    border-collapse: collapse;
+}
+td, tr{
+    border: none;
+}
+tr:nth-child(even){
+    background: grey;
+    color: white;
+}
+tr:nth-child(odd){
+    background: black;
+    color: white;
+}
+/**
+Form mezõk designja
+*/
+input[type="text"], input[type="password"], select{
+    border: 1px solid black;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+}
+input[type="button"], input[type="submit"]{
+    border-color: black;
+    border-style: solid;
+    color: white;
+    background: black;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+}
 input:hover{
-border-color: #FF0000;
+    border-color: #FF0000;
+    box-shadow: 0px 0px 1px #FF0000;
+}
+input[type="text"]:focus{ 
+    border-color: #FF0000; 
+    box-shadow: 0px 0px 1px #FF0000;
 }
 
 .login
