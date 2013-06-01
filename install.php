@@ -108,8 +108,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."timetable` (
   `number` int(11) NOT NULL,
   `fromd` date NOT NULL,
   `tod` date NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `day` (`dayn`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 DROP TABLE IF EXISTS `".$Prefix."users`;
