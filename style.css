@@ -67,7 +67,7 @@ input[type="text"], input[type="password"], input[type="date"], input[type="numb
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
 }
-input[type="button"], input[type="submit"]{
+input[type="button"], input[type="submit"], input[type="disabled"]{
     border-color: black;
     border-style: solid;
     color: white;
