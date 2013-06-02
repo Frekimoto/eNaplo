@@ -89,7 +89,18 @@ if($_SESSION["ID"]!=-1)
                         });
                 if(Empty)
                     {
-                    $('#Login_Div').addClass('login-error').effect('shake', {times: 5}, 500);
+                    $('#Login_Div').addClass('login-error')//.effect('shake', {times: 5}, 500);
+					var options = {
+										direction: 'left',
+										distance: 20,
+										times: 5
+									};
+									var left = $('.login-error').position().left > parseInt($('.login-error').css('margin-left')) ? $('.login-error').position().left : $('.login-error').css('margin-left');
+									$('.login-error')
+									.css({'margin-left': left})
+									.effect('shake' , options , 500 , function(){
+									$('.login-error').removeAttr('style');
+									});
                     $('#Login_Error').html('Minden mező kitöltése kötelező!').show('fast');
                     }else{
                     $('#Login_Error').html('<div style="color: green;">Kis türelmet...</div>').show('fast');
@@ -109,12 +120,34 @@ if($_SESSION["ID"]!=-1)
                                 if(data=='2')
                                     {
                                     $('#Login_Error').html('Minden mező kitöltése kötelező!').show('fast');
-                                    $('#Login_Div').addClass('login-error').effect('shake', {times: 5}, 500);
+                                    $('#Login_Div').addClass('login-error')/*.effect('shake', {times: 5}, 500);*/
+									var options = {
+										direction: 'left',
+										distance: 10,
+										times: 5
+									};
+									var left = $('.login-error').position().left > parseInt($('.login-error').css('margin-left')) ? $('.login-error').position().left : $('.login-error').css('margin-left');
+									$('.login-error')
+									.css({'margin-left': left})
+									.effect('shake' , options , 500 , function(){
+									$('.login-error').removeAttr('style');
+									});
                                         }else
                                         if(data=='3')
                                             {
                                             $('#Login_Error').html('Hibás felhasználónév és/vagy jelszó.').show('fast');
-                                            $('#Login_Div').addClass('login-error').effect('shake', {times: 5}, 500);
+                                            $('#Login_Div').addClass('login-error')/*.effect('shake', {times: 5}, 500);*/
+									var options = {
+										direction: 'left',
+										distance: 10,
+										times: 5
+									};
+									var left = $('.login-error').position().left > parseInt($('.login-error').css('margin-left')) ? $('.login-error').position().left : $('.login-error').css('margin-left');
+									$('.login-error')
+									.css({'margin-left': left})
+									.effect('shake' , options , 500 , function(){
+									$('.login-error').removeAttr('style');
+									});
                                             }
                             });
                     }

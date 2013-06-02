@@ -1,8 +1,5 @@
-html, body
+body
 {
-position: relative;
-width: 100%;
-display: block;
 text-align: center;
 }
 .Menu a{ 
@@ -21,9 +18,12 @@ padding: 10px;
 .Menu a:hover, .Sub-Menu a:hover { color: #FF0000;}
 
 div.footer{
+box-shadow: 0px 0px 25px rgba(0,0,0,0.5);
 background: black;
 color: white;
-
+position: absolute;
+bottom: 0px;
+width: 99%;
 }
 div.footer a {
     color: white;
@@ -47,6 +47,17 @@ tr:nth-child(odd){
     background: black;
     color: white;
 }
+tr:nth-child(odd) input[type="button"], tr:nth-child(odd) input[type="submit"]{
+    background: white;
+    color: black;
+}
+tr:hover{
+	background: #DFDED9;
+	color: black;
+}
+/*tr:nth-child(odd):hover{
+	background: #DFDED9;
+}*/
 /**
 Form mezõk designja
 */
@@ -69,24 +80,15 @@ input:hover{
     border-color: #FF0000;
     box-shadow: 0px 0px 1px #FF0000;
 }
-input[type="text"]:focus{ 
+input:focus{ 
     border-color: #FF0000; 
     box-shadow: 0px 0px 1px #FF0000;
 }
 
 .login
 {
-white-space: nowrap;
-display: inline-block;
 margin-left: auto;
-margin-right: auto;
-}
-
-.login-error
-{
-border-color: red;
-border-width: 2;
-border-style: dotted;
+margin-right: auto;/**/
 }
 #Login_Error
 {
@@ -94,7 +96,18 @@ color: red;
 border-color: red;
 border-width: 1px;
 border-style: solid;
+margin-left: auto;
+margin-right: auto;
 display: none;
+}
+.login-error
+{
+border-color: red;
+border-width: 2;
+border-style: dotted;
+width: 30%;
+margin-left: auto;
+margin-right: auto;
 }
 .Error
 {
