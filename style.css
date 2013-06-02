@@ -39,6 +39,9 @@ table{
 td, tr{
     border: none;
 }
+td{
+    border-left: 1px solid white;
+}
 tr:nth-child(even){
     background: grey;
     color: white;
@@ -55,19 +58,16 @@ tr:hover{
 	background: #DFDED9;
 	color: black;
 }
-/*tr:nth-child(odd):hover{
-	background: #DFDED9;
-}*/
 /**
 Form mezõk designja
 */
-input[type="text"], input[type="password"], select{
+input[type="text"], input[type="password"], input[type="date"], input[type="number"], select, option{
     border: 1px solid black;
     border-radius: 3px;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
 }
-input[type="button"], input[type="submit"]{
+input[type="button"], input[type="submit"], input[type="disabled"]{
     border-color: black;
     border-style: solid;
     color: white;
@@ -84,7 +84,12 @@ input:focus{
     border-color: #FF0000; 
     box-shadow: 0px 0px 1px #FF0000;
 }
-
+select:hover, option:hover, select:focus, option:focus{
+	border-color: #FF0000;
+    box-shadow: 0px 0px 1px #FF0000;
+	background: black;
+	color: white;
+}
 .login
 {
 margin-left: auto;
