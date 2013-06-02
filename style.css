@@ -18,6 +18,7 @@ padding: 10px;
 .Menu a:hover, .Sub-Menu a:hover { color: #FF0000;}
 
 div.footer{
+box-shadow: 0px 0px 25px rgba(0,0,0,0.5);
 background: black;
 color: white;
 position: absolute;
