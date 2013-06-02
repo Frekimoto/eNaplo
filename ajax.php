@@ -254,7 +254,7 @@ switch((int)$_POST["TYPE"])
                         {
                         echo '<select onChange="$.post(\'ajax.php\',{TYPE: 3, Id: \''.$ID.'\', Type: $(\'option:selected\',this).val()},function(data){$(\'#Gardes\').html(data);});"><optgroup label="Válassz tantárgyat">';
                         foreach($HEAD as $text=>$text2)
-                            echo "<option value='".$text."'".($text==$LESSON?" SELECTED":"").">".$text2." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND class='".$ID."' AND lesson='".mysql_real_escape_string($text)."'"))." fő)</option>";
+                            echo "<option value='".$text."'".($text==$LESSON?" SELECTED":"").">".$text2." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_TEACHES_TABLE.lesson='".mysql_real_escape_string($text)."'"))." fő)</option>";
                         echo "</optgroup></select>";
                         }
                     $HEAD=array();
