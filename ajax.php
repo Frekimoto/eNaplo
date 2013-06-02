@@ -713,7 +713,7 @@ switch((int)$_POST["TYPE"])
                     </div>
                 </div>
                 <div id="Administrator"<?php echo ($U!=-1)?(($R==4)?"":" style=\"display: none;\"style=\"display: none;\""):" style=\"display: none;\""; ?>></div><br/>
-                <input type="Button" value="Hozzáad" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='' || $('#User_Password').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else $.post('ajax.php',{TYPE: 10, Data: $('#User_Form').serialize()},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='-4')Message('Rossz OM azonosító formátum.',5000,'User_Error','red'); else if(a=='-5')Message('Ez az OM azonosító már használatban van.',5000,'User_Error','red'); else if(a=='-1')Message('Hiba!',5000,'User_Error','red'); else{Message('Felhasználó hozzáadva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz'; else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#Edit_User,#Delete_Users').append($('<option></option>').attr('value', a).text(User)); if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); $('#Users_Div').show('fast'); $.post('ajax.php',{TYPE: 9},function(a){$('#User_Content').html(a); Timetable_Input();});}});"/>
+                <input type="Button" value="Hozzáad" onClick="if($('#User_Username').val()=='' || $('#User_RealName').val()=='' || $('#User_Password').val()=='')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else{$('#User_Form').find('input, textarea, button, select').attr('disabled',false); a=$('#User_Form').serialize(); $('#User_Form').find('input, textarea, button, select').attr('disabled',true); $.post('ajax.php',{TYPE: 10, Data: a},function(a){if(a=='-2')Message('Nem töltötted ki az összes mezőt.',5000,'User_Error','red'); else if(a=='-3')Message('Ez a felhasználónév már foglalt.',5000,'User_Error','red'); else if(a=='-4')Message('Rossz OM azonosító formátum.',5000,'User_Error','red'); else if(a=='-5')Message('Ez az OM azonosító már használatban van.',5000,'User_Error','red'); else if(a=='-1')Message('Hiba!',5000,'User_Error','red'); else{Message('Felhasználó hozzáadva!',5000,'User_Error','green'); User='('+$('#User_Username').val()+' - '; if($('#User_Rank :selected').val()=='2')User+='Sz'; else if($('#User_Rank :selected').val()=='3')User+='T'; else if($('#User_Rank :selected').val()=='4')User+='A'; else User+='D'; User+=') '+$('#User_RealName').val(); $('#Edit_User,#Delete_Users').append($('<option></option>').attr('value', a).text(User)); if($('#User_Rank :selected').val()=='3')$('#NewT_Teacher').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); else if($('#User_Rank :selected').val()=='1')$('#NewT_Student').append($('<option></option>').attr('value',a).text($('#User_RealName').val())); $('#Users_Div').show('fast'); $.post('ajax.php',{TYPE: 9},function(a){$('#User_Content').html(a); Timetable_Input();});} $('#User_Form').find('input, textarea, button, select').attr('disabled',false);});}"/>
                 <input type="Button" value="Eldob" onClick="if(confirm('Biztosan kiüríted az űrlapot?')){$('#User_Username,#User_RealName,#User_Password').val(''); $('#User_Rank,#Parent_To_Student,#Class_To_Student,#Class_To_Teacher,#Edit_User').each(function(){$(this).val($('option:first',this).val()).trigger('change');});}"/>
             </form>
         <?php
@@ -730,10 +730,7 @@ switch((int)$_POST["TYPE"])
             echo "Csalunk? Csalunk? Nincs hozzá jogod!";
             exit;
             }
-        if(!isset($_POST["Data"]))
-            echo -1;
-            else if($_POST["Data"]=="")
-                echo -1;
+        if(!isset($_POST["Data"]) or $_POST["Data"]=="")die("-1");
         $Data=explode("&",urldecode($_POST["Data"]));
         foreach($Data as $text)
             {
@@ -747,7 +744,7 @@ switch((int)$_POST["TYPE"])
             if($Data["UN"]=="" or $Data["RN"]=="" or $Data["PAS"]=="" or ((string)$Data["R"]=="1" and (string)$Data["OM"]==""))
                 echo -2;
                 else
-				if((strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7") and (string)$Data["R"]=="1")
+				if((string)$Data["R"]=="1" and (strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7"))
 					echo -4;
 						else
 						if((string)$Data["R"]=="1" and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."'"))==1)
@@ -759,7 +756,7 @@ switch((int)$_POST["TYPE"])
 									$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
 									$C=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0;
 									$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND rank!='1'"))==1)?$Data["PAR"]:0):0;
-									if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `pass`, `om_id`, `added`, `class`, `parent`, `rank`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', '".mysql_real_escape_string($Data["OM"])."', '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
+									if(mysql_query("INSERT `$_SYSTEM_USERS_TABLE` (`id`, `username`, `real_name`, `pass`, `om_id`, `added`, `class`, `parent`, `rank`) VALUES ( NULL, '".mysql_real_escape_string($Data["UN"])."', '".mysql_real_escape_string($Data["RN"])."', '".sha1(md5($Data["PAS"]))."', ".((string)$Data["R"]=="1"?"'".mysql_real_escape_string($Data["OM"])."'":"NULL").", '".mysql_real_escape_string(date("Y-m-d-G-i-s"))."', '".mysql_real_escape_string($C)."', '".mysql_real_escape_string($P)."', '".mysql_real_escape_string($Data["R"])."')")!=1)
 										echo -1;
 											else
 											echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE username='".mysql_real_escape_string($Data["UN"])."'"), 0, "id");
@@ -793,10 +790,10 @@ switch((int)$_POST["TYPE"])
                 if(!isset($Data["UN"]) or !isset($Data["RN"]) or !isset($Data["PAS"]) or !isset($Data["OM"]))
                     echo -1;
                     else
-                    if($Data["UN"]=="" or $Data["RN"]=="" or (string)$Data["OM"]=="")
+                    if($Data["UN"]=="" or $Data["RN"]=="" or ((string)$Data["R"]=="1" and (string)$Data["OM"]==""))
                         echo -2;
 							else
-						if(strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7")
+						if((string)$Data["R"]=="1" and (strlen($Data["OM"])!=11 or (string)$Data["OM"][0]!="7"))
 							echo -4;
 								else
 								if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE om_id='".mysql_real_escape_string($Data["OM"])."' AND id!='".mysql_real_escape_string($_POST["Type"])."'"))==1)
@@ -807,7 +804,7 @@ switch((int)$_POST["TYPE"])
 												$C=((string)$Data["R"]=="1")?(int)$Data["CS"]:((string)$Data["R"]=="3"?(int)$Data["CT"]:0);
 												$C=$C==0?0:(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($C)."'"))==1?$C:0);
 												$P=((string)$Data["R"]=="1")?((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($Data["PAR"])."' AND rank!='1'"))==1)?$Data["PAR"]:0):0;
-												echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', rank='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", pass='".sha1(md5($Data["PAS"]))."'").", om_id='".mysql_real_escape_string($Data["OM"])."' WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
+												echo mysql_query("UPDATE `$_SYSTEM_USERS_TABLE` SET `username`='".mysql_real_escape_string($Data["UN"])."', real_name='".mysql_real_escape_string($Data["RN"])."', class='".mysql_real_escape_string($C)."', parent='".mysql_real_escape_string($P)."', rank='".mysql_real_escape_string($Data["R"])."'".($Data["PAS"]==""?"":", pass='".sha1(md5($Data["PAS"]))."'").", om_id=".((string)$Data["R"]=="1"?"'".mysql_real_escape_string($Data["OM"])."'":"NULL")." WHERE id='".mysql_real_escape_string($_POST["Type"])."' LIMIT 1;");
 												}else
 												echo -3;
                     }
