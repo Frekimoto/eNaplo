@@ -90,16 +90,7 @@ input:focus{
 margin-left: auto;
 margin-right: auto;/**/
 }
-#Login_Error
-{
-color: red;
-border-color: red;
-border-width: 1px;
-border-style: solid;
-margin-left: auto;
-margin-right: auto;
-display: none;
-}
+
 .login-error
 {
 border-color: red;
