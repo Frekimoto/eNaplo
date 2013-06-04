@@ -28,13 +28,11 @@ if(!strtotime($_GET["date"]."-1-1"))
 		else
 		$date=strtotime($_GET["date"]."-1-1");
 $LESSONS=array();
-$ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."'");
+$ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND (typ='8' OR typ='9')");
 while($row=mysql_fetch_array($ADAT))
 	if(!in_array($row["lesson"],$LESSONS))
-		if(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$row["lesson"]."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'")))
 			array_push($LESSONS,$row["lesson"]);
-				else
-				die('Hiányzó érdemjegy! (óra:diák|'.$row["lesson"].':'.$id.')');
+if(count($LESSONS)<1)die('A diák még semmiből nincs lezárva!');
 sort($LESSONS);
 $A=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (typ='2' OR typ='3')"));
 $B=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_DELAY_TABLE WHERE uid='".$id."' AND (typ='1' OR typ='4')"));
@@ -47,9 +45,9 @@ if(isset($_GET["b"]))
 	<head>
 		<title>Profil nyomtatása</title>
 	</head>
-	<body>
+	<body align="Center">
 		<h3><?php echo (isset($_GET["firsthalf"])?"Félévi bizonyítvány":"Bizonyítvány")." ".date("Y",$date)."-".date('Y',strtotime("+1 year",$date)); ?></h3>
-		<table>
+		<table align="Center">
 			<tr>
 				<td><b>Tanuló neve:</b></td>
 				<td style="text-align:Right"><?php echo mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "real_name"); ?></td>
@@ -63,40 +61,42 @@ if(isset($_GET["b"]))
 				<td style="text-align:Right"><?php $OM=(string)mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$id."'"), 0, "om_id"); echo (strlen($OM)==11 and $OM[0]=="7")?$OM:"Nincs OM azonosító megadva"; ?></td>
 			</tr>
 		</table><br />
-		<table>
+		<table align="Center" width="80%">
 			<tr>
-				<td><b>Tantárgy</b></td>
-				<td style="text-align:Right"><b>Érdemjegy</b></td>
+				<td align="Center" width="40%"><b>Tantárgy</b></td>
+				<td align="Center" width="40%"><b>Érdemjegy</b></td>
 				<?php
 				foreach($LESSONS as $text)
 					if($text!="")
-						echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td style=\"text-align:Right\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
+						echo "<tr><td align=\"Center\" width=\"40%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td  align=\"Center\" width=\"40%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
 				?>
 			</tr>
 		</table><br />
-		<table>
+		<table align="Center" width="80%">
 			<tr>
-				<td colspan="3"><b>Hiányzások</b></td>
-				<td></td>
-				<td></td>
+				<td colspan="3" align="Center"><b>Hiányzások</b></td>
 			</tr>
 			<tr>
-				<td>Igazolt</td>
-				<td>Igazolatlan</td>
-				<td><b>Összesen</b></td>
+				<td align="Center">Igazolt</td>
+				<td align="Center">Igazolatlan</td>
+				<td align="Center"><b>Összesen</b></td>
 			</tr>
 			<tr>
-				<td style="text-align:Center"><?php echo $A; ?></td>
-				<td style="text-align:Center"><?php echo $B; ?></td>
-				<td style="text-align:Center"><i><?php echo $A+$B; ?></i></td>
+				<td align="Center"><?php echo $A; ?></td>
+				<td align="Center"><?php echo $B; ?></td>
+				<td align="Center"><i><?php echo $A+$B; ?></i></td>
 			</tr>
 		</table>
 		<?php echo date("Y-m-d"); ?>
 		<br /><hr /><br />
-		<table>
+		<?php echo (mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' and typ='10' and description!=''"))?"Megjegyzés: ".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' and typ='10'"), 0, "description")."<br /><br /><br /><br />":""); ?>
+		<table width="80%" align="Center">
 			<tr>
-				<td width="50%">osztályfőnök</td>
-				<td width="50%">szülő, gondviselő</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td width="40%" align="Center">osztályfőnök</td>
+				<td width="40%" align="Center">szülő, gondviselő</td>
 			</tr>
 		</table>
 		<?php echo base64_decode("PGRpdiBjbGFzcz0iZm9vdGVyIj48aDY+Q3JlYXRlZCBieTogPGEgaHJlZj0iaHR0cDovL3d3dy50LWJvbmQuaHUvIiB0YXJnZXQ9Il9ibGFuayI+VC1ib25kPC9hPiAtIDIwMTM8L2g2PjwvZGl2Pg=="); ?>
@@ -324,7 +324,7 @@ switch((int)$_POST["TYPE"])
                         if(mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "class")==$ID)
                             {
                             $s=0; $n=0;
-                            echo "<tr><td>".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name").(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='8'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&firsthalf&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0;' class='Print'>[1]</a></sup>":"").(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='9'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0; class='Print'>[2]</a></sup>":"")."</td>";
+                            echo "<tr><td><a href=\"javascript:void(0);\" onClick=\"\$.post('ajax.php',{TYPE: 17, Id: '".$row["uid"]."'},function(data){\$('#EditGarde').html(data);});\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["uid"]."'"), 0, "real_name")."</a>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='8'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&firsthalf&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0;' class='Print'>[1]</a></sup>":"").(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND typ='9'"))?"<sup><a href='#' onClick='a=prompt(\"Igazolt órák száma:\"); b=prompt(\"Igazolatlan órák száma:\"); c=\"ajax.php?id=".$row["uid"]."&date=".$date."&print\"; if(a!=\"\")c+=\"&a=\"+a; if(b!=\"\")c+=\"&b=\"+b; $(this).attr(\"href\",c); return 0; class='Print'>[2]</a></sup>":"")."</td>";
                             $GARDES=array();
                             $ADAT2=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ!='8' AND typ!='9' ORDER BY added ASC");
                             while($row2=mysql_fetch_array($ADAT2))
@@ -1241,6 +1241,101 @@ switch((int)$_POST["TYPE"])
             echo -1;
             }else
             echo -1;                
+        break;
+    case 17: //Load description editor
+        if($_SESSION["ID"]==-1)
+            {
+            echo "Hiba!";
+            exit;
+            }
+        if($_SESSION["RANK"]!=4 and $_SESSION["RANK"]!=3)
+            {
+            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
+            exit;
+            }
+		if(!isset($_POST["Id"]))
+            echo "Hiba!";
+            else{
+			if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."'")))die("Nemlétező felhasználó.");
+			$_VAL=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='11'"))?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='11' LIMIT 1"), 0, "garde"):"-";
+			$_VAL2=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='12'"))?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='12' LIMIT 1"), 0, "garde"):"-";;
+			$_VAL3=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='13'"))?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='13' LIMIT 1"), 0, "garde"):"-";;
+			$_VAL4=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='14'"))?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='14' LIMIT 1"), 0, "garde"):"-";;
+            echo '<table border="1" align="Center">'.
+				'<tr><td>Diák</td><td>'.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."' LIMIT 1"), 0, "real_name").'</td></tr>'.
+				'<tr><td>Magatartás</td><td>'.
+				'<select class="Value" id="EditValue" disabled="disabled">'.
+                    '<optgroup label="Érték">'.
+                        '<option value="-"'.($_VAL=="-"?' SELECTED':'').'>-</option>'.
+                        '<option value="1"'.($_VAL=="1"?' SELECTED':'').'>1</option>'.
+                        '<option value="2"'.($_VAL=="2"?' SELECTED':'').'>2</option>'.
+                        '<option value="3"'.($_VAL=="3"?' SELECTED':'').'>3</option>'.
+                        '<option value="4"'.($_VAL=="4"?' SELECTED':'').'>4</option>'.
+                        '<option value="5"'.($_VAL=="5"?' SELECTED':'').'>5</option>'.
+                    '</optgroup>'.
+                '</select>'.
+				'</td></tr>'.
+				'<tr><td>Szorgalom</sup></td><td>'.
+				'<select class="Value" id="EditValue" disabled="disabled">'.
+                    '<optgroup label="Érték">'.
+                        '<option value="-"'.($_VAL2=="-"?' SELECTED':'').'>-</option>'.
+                        '<option value="1"'.($_VAL2=="1"?' SELECTED':'').'>1</option>'.
+                        '<option value="2"'.($_VAL2=="2"?' SELECTED':'').'>2</option>'.
+                        '<option value="3"'.($_VAL2=="3"?' SELECTED':'').'>3</option>'.
+                        '<option value="4"'.($_VAL2=="4"?' SELECTED':'').'>4</option>'.
+                        '<option value="5"'.($_VAL2=="5"?' SELECTED':'').'>5</option>'.
+                    '</optgroup>'.
+                '</select>'.
+				'</td></tr>'.
+				'<tr><td>Magatartás<sup>(2. félév)</sup></td><td>'.
+				'<select class="Value" id="EditValue" disabled="disabled">'.
+                    '<optgroup label="Érték">'.
+                        '<option value="-"'.($_VAL3=="-"?' SELECTED':'').'>-</option>'.
+                        '<option value="1"'.($_VAL3=="1"?' SELECTED':'').'>1</option>'.
+                        '<option value="2"'.($_VAL3=="2"?' SELECTED':'').'>2</option>'.
+                        '<option value="3"'.($_VAL3=="3"?' SELECTED':'').'>3</option>'.
+                        '<option value="4"'.($_VAL3=="4"?' SELECTED':'').'>4</option>'.
+                        '<option value="5"'.($_VAL3=="5"?' SELECTED':'').'>5</option>'.
+                    '</optgroup>'.
+                '</select>'.
+				'</td></tr>'.
+				'<tr><td>Szorgalom<sup>(2. félév)</sup></td><td>'.
+				'<select class="Value" id="EditValue" disabled="disabled">'.
+                    '<optgroup label="Érték">'.
+                        '<option value="-"'.($_VAL4=="-"?' SELECTED':'').'>-</option>'.
+                        '<option value="1"'.($_VAL4=="1"?' SELECTED':'').'>1</option>'.
+                        '<option value="2"'.($_VAL4=="2"?' SELECTED':'').'>2</option>'.
+                        '<option value="3"'.($_VAL4=="3"?' SELECTED':'').'>3</option>'.
+                        '<option value="4"'.($_VAL4=="4"?' SELECTED':'').'>4</option>'.
+                        '<option value="5"'.($_VAL4=="5"?' SELECTED':'').'>5</option>'.
+                    '</optgroup>'.
+                '</select>'.
+				'</td></tr>'.
+				'<tr><td>Leírás</td><td><textarea id="EditDescription" placeholder="Leírás">'.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='10'"))?mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='10' LIMIT 1"), 0, "description"):"").'</textarea></td></tr>'.
+				'<tr><td><input type="Button" onClick="$(\'#EditGarde\').html(\'\');" value="Mégse"/></td><td><input type="Button" id="EditT_Button" onClick="$.post(\'ajax.php\',{TYPE: 18, Id: '.$_POST["Id"].', DESC: $(\'#EditDescription\').val()},function(data){if(data==\'1\')$(\'#EditGarde\').html(\'\'); else alert(data);});" value="Módosít"/></td></tr>'.
+                '</table>';
+			}
+        break;
+    case 18: //Update description of user
+        if($_SESSION["ID"]==-1)
+            {
+            echo "Hiba!";
+            exit;
+            }
+        if($_SESSION["RANK"]!=4 and $_SESSION["RANK"]!=3)
+            {
+            echo "Csalunk? Csalunk? Nincs hozzá jogod!";
+            exit;
+            }
+		if(!isset($_POST["Id"]) or !isset($_POST["DESC"]))
+            echo "Hiba!";
+            else{
+			if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."'")))die("Nemlétező felhasználó.");
+			if(!mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='10'")))
+				echo mysql_query("INSERT INTO `$_SYSTEM_GARDES_TABLE`(`id`, `uid`, `tid`, `added`, `description`, `garde`, `lesson`, `typ`) VALUES (NULL,".mysql_real_escape_string($_POST["Id"]).",'0','".date("Y-m-d")."','".mysql_real_escape_string($_POST["DESC"])."','-','0','10')");
+					else
+					echo mysql_query("UPDATE `$_SYSTEM_GARDES_TABLE` SET `description`='".mysql_real_escape_string($_POST["DESC"])."' WHERE uid='".mysql_real_escape_string($_POST["Id"])."' AND typ='10'");
+			}
         break;
     default:
         echo -1;

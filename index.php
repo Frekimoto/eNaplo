@@ -212,6 +212,7 @@ if($_SESSION["ID"]!=-1)
         <?php }else{ ?>
             <h1>Üdvözlünk <i><?php echo $_SESSION["REAL_NAME"]; ?></i>!</h1>
             <div class="Menu"><a href="javascript:void(0);" onClick="<?php if($_SESSION["RANK"]==1 or $_SESSION["RANK"]==2)echo '$.post(\'ajax.php\',{TYPE: 2},function(data){$(\'#Content\').html(data);});'; ?> $('#Content').toggle('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Napló</a>  <a href="javascript:void(0);" onClick="$('#Notes').toggle('fast'); $('#Timetable').hide('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast');">Jegyzőkönyv</a> <a href="javascript:void(0);" onClick="$('#Timetable').toggle('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Notes').hide('fast');">Órarend</a><?php if($_SESSION["RANK"]!=4){ ?> <a href="javascript:void(0);" onClick="$('#Profile_Manager').toggle('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Profil</a><?php }else{ ?> <a href="javascript:void(0);" onClick="$('#Other_Manager').toggle('fast'); $('#Content').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Egyéb</a><?php } ?> <a href="javascript:void(0);" onClick="if(confirm('Biztosan kilépsz?'))location.href='?exit';">Kilépés</a></div><br />
+			<div class="container">
             <div id="Notes" style="display: none;">
             <?php
             if(isset($_POST["NewCertificate"]) and isset($_POST["ID"]) and  ($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4))
@@ -438,6 +439,7 @@ if($_SESSION["ID"]!=-1)
                         }
                 ?>
             </div>
+			</div>
         <?php } ?>
     <br /><?php echo base64_decode("PGRpdiBjbGFzcz0iZm9vdGVyIj48aDY+Q3JlYXRlZCBieTogPGEgaHJlZj0iaHR0cDovL3d3dy50LWJvbmQuaHUvIiB0YXJnZXQ9Il9ibGFuayI+VC1ib25kPC9hPiAtIDIwMTM8YnIgLz5EZXNpZ25lZCBieTogPGEgaHJlZj0iaHR0cDovL3VzZXJzLmF0dy5odS9ob3J2d2ViLyIgdGFyZ2V0PSJfYmxhbmsiPkhvcnY8L2E+PC9oNj48L2Rpdj4="); ?>
     </body>
