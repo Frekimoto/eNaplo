@@ -211,7 +211,7 @@ if($_SESSION["ID"]!=-1)
             </div>
         <?php }else{ ?>
             <h1>Üdvözlünk <i><?php echo $_SESSION["REAL_NAME"]; ?></i>!</h1>
-            <div class="Menu"><a href="javascript:void(0);" onClick="<?php if($_SESSION["RANK"]==1 or $_SESSION["RANK"]==2)echo '$.post(\'ajax.php\',{TYPE: 2},function(data){$(\'#Content\').html(data);});'; ?> $('#Content').toggle('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Napló</a>  <a href="javascript:void(0);" onClick="$('#Notes').toggle('fast'); $('#Timetable').hide('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast');">Jegyzőkönyv</a> <a href="javascript:void(0);" onClick="$('#Timetable').toggle('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Notes').hide('fast');">Órarend</a><?php if($_SESSION["RANK"]!=4){ ?> <a href="javascript:void(0);" onClick="$('#Profile_Manager').toggle('fast'); $('#Content').hide('fast'); $('#Other_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Profil</a><?php }else{ ?> <a href="javascript:void(0);" onClick="$('#Other_Manager').toggle('fast'); $('#Content').hide('fast'); $('#Profile_Manager').hide('fast'); $('#Timetable').hide('fast'); $('#Notes').hide('fast');">Egyéb</a><?php } ?> <a href="javascript:void(0);" onClick="if(confirm('Biztosan kilépsz?'))location.href='?exit';">Kilépés</a></div><br />
+            <div class="Menu"><a href="javascript:void(0);" onClick="<?php if($_SESSION["RANK"]==1 or $_SESSION["RANK"]==2)echo '$.post(\'ajax.php\',{TYPE: 2},function(data){$(\'#Content\').html(data);});'; ?> $('#Content').toggle('fast'); $('#Other_Manager,#Profile_Manager,#Timetable,#Notes,#Exit').hide('fast');">Napló</a>  <a href="javascript:void(0);" onClick="$('#Notes').toggle('fast'); $('#Timetable,#Content,#Other_Manager,#Profile_Manager,#Exit').hide('fast');">Jegyzőkönyv</a> <a href="javascript:void(0);" onClick="$('#Timetable').toggle('fast'); $('#Content,#Other_Manager,#Profile_Manager,#Notes,#Exit').hide('fast');">Órarend</a><?php if($_SESSION["RANK"]!=4){ ?> <a href="javascript:void(0);" onClick="$('#Profile_Manager').toggle('fast'); $('#Content,#Other_Manager,#Timetable,#Notes,#Exit').hide('fast');">Profil</a><?php }else{ ?> <a href="javascript:void(0);" onClick="$('#Other_Manager').toggle('fast'); $('#Content,#Profile_Manager,#Timetable,#Notes,#Exit').hide('fast');">Egyéb</a><?php } ?> <a href="javascript:void(0);" onClick="$('#Exit').toggle('fast'); $('#Content,#Other_Manager,#Timetable,#Notes,#Profile_Manager').hide('fast');">Kilépés</a></div><br />
 			<div class="container">
             <div id="Notes" style="display: none;">
             <?php
@@ -274,10 +274,10 @@ if($_SESSION["ID"]!=-1)
             <?php }else{ ?>
                 <div id="Other_Manager" style="display: none;">
 					<div class="Sub-Menu">
-						<a href="javascript:void(0);" onClick="$('#Lesson_Manager').toggle('fast'); $('#User_Manager').hide('fast'); $('#Class_Manager').hide('fast'); $('#Timetable_Manager').hide('fast');">Tanórakezelő</a>
-						<a href="javascript:void(0);" onClick="$('#User_Manager').toggle('fast'); $('#Lesson_Manager').hide('fast'); $('#Class_Manager').hide('fast'); $('#Timetable_Manager').hide('fast');">Felhasználókezelő</a>
-						<a href="javascript:void(0);" onClick="$('#Class_Manager').toggle('fast'); $('#Lesson_Manager').hide('fast'); $('#User_Manager').hide('fast'); $('#Timetable_Manager').hide('fast');">Osztálykezelő</a>
-						<a href="javascript:void(0);" onClick="$('#Timetable_Manager').toggle('fast'); $('#Lesson_Manager').hide('fast'); $('#User_Manager').hide('fast'); $('#Class_Manager').hide('fast');">Órarendkezelő</a>
+						<a href="javascript:void(0);" onClick="$('#Lesson_Manager').toggle('fast'); $('#User_Manager,#Class_Manager,#Timetable_Manager').hide('fast');">Tanórakezelő</a>
+						<a href="javascript:void(0);" onClick="$('#User_Manager').toggle('fast'); $('#Lesson_Manager,#Class_Manager,#Timetable_Manager').hide('fast');">Felhasználókezelő</a>
+						<a href="javascript:void(0);" onClick="$('#Class_Manager').toggle('fast'); $('#Lesson_Manager,#User_Manager,#Timetable_Manager').hide('fast');">Osztálykezelő</a>
+						<a href="javascript:void(0);" onClick="$('#Timetable_Manager').toggle('fast'); $('#Lesson_Manager,#User_Manager,#Class_Manager').hide('fast');">Órarendkezelő</a>
 					</div>
                     <div id="Class_Manager" style="display: none;">
                         <div id="Class_Error"></div>
@@ -439,6 +439,11 @@ if($_SESSION["ID"]!=-1)
                         }
                 ?>
             </div>
+			<div id="Exit" style="display: none;">
+				<h3>Kilépés megerősítése.<br />Biztosan kilépsz?</h3>
+				<input type="Submit" value="Maradok" onClick="$('#Exit').hide('fast');" />
+				<input type="Submit" value="Kilépek" onClick="location.href='?exit';" />
+			</div>
 			</div>
         <?php } ?>
     <br /><?php echo base64_decode("PGRpdiBjbGFzcz0iZm9vdGVyIj48aDY+Q3JlYXRlZCBieTogPGEgaHJlZj0iaHR0cDovL3d3dy50LWJvbmQuaHUvIiB0YXJnZXQ9Il9ibGFuayI+VC1ib25kPC9hPiAtIDIwMTM8YnIgLz5EZXNpZ25lZCBieTogPGEgaHJlZj0iaHR0cDovL3VzZXJzLmF0dy5odS9ob3J2d2ViLyIgdGFyZ2V0PSJfYmxhbmsiPkhvcnY8L2E+PC9oNj48L2Rpdj4="); ?>
