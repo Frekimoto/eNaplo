@@ -165,7 +165,7 @@ switch((int)$_POST["TYPE"])
         $HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ='8'"));
         $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ='9'"));
         ?>
-        <table border="1" align="center">
+        <table border="1" align="center" class="tnaplo">
             <tr>
                 <?php
                 foreach($HEAD as $text)
@@ -269,7 +269,7 @@ switch((int)$_POST["TYPE"])
 					$date=date("Y",$_FROM_DATE);
                     ?>
                     <form id="NewGardesForm">
-                    <table border="1" align="center">
+                    <table border="1" align="center" class="tnaplo">
                         <tr>
                             <td>Tanulók</td>
                             <?php
@@ -864,7 +864,7 @@ switch((int)$_POST["TYPE"])
                     $i.="<option value='".$row["id"]."'".(($ID==$row["id"] and $TYPE==1)?" SELECTED":"").">".$row["real_name"]."</option>\n";
                     $ii+=1;
                 }
-            echo '<table border="1" align="center"><tr><td><select id="Select_TimeTable_Teacher" onChange="$(\'#Select_TimeTable_Classes\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$i.'</select></td><td'.($jj>0?'':' style="display: none;"').'><label for="Select_TimeTable_Classes">Osztály:</label> <select id="Select_TimeTable_Classes" onChange="$(\'#Select_TimeTable_Teacher\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$j.'</select></td>';
+            echo '<table border="1" align="center" class="tablee"><tr><td><select id="Select_TimeTable_Teacher" onChange="$(\'#Select_TimeTable_Classes\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 1, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$i.'</select></td><td'.($jj>0?'':' style="display: none;"').'><label for="Select_TimeTable_Classes">Osztály:</label> <select id="Select_TimeTable_Classes" onChange="$(\'#Select_TimeTable_Teacher\').each(function(){$(this).val($(\'option:first\',this).val());}); if($(this).val()!=\'-\'){$.post(\'ajax.php\',{TYPE: 12, Type: 2, Id: $(this).val(), Date: $(\'#Timetable_Date :selected\').val()},function(data){$(\'#DTimetable\').html(data);});}">'.$j.'</select></td>';
             $j="";
             $jj=0;
             for($i=strtotime("Monday",$_FROM_DATE); $i<=$_TO_DATE; $i=strtotime("+1 week",$i))
@@ -942,7 +942,7 @@ switch((int)$_POST["TYPE"])
                 }
             sort($HEAD);
             ?>
-            <table border="1" align="center">
+            <table border="1" align="center" class="tablee">
                 <tr><td>Óra/Nap</td><?php for($i=0; $i<count($HEAD); $i++)echo "<td>".ucfirst(iconv('iso-8859-2','utf-8',strftime("%A",strtotime('+'.$HEAD[$i].' day', strtotime('next Sunday')))))."</td>"; ?></tr>
                 <?php
                 for($i=$NMI; $i<=$NMA; $i++)
@@ -1084,7 +1084,7 @@ switch((int)$_POST["TYPE"])
                         "<option value='5'".($Value=='5'?" SELECTED":"").">5</option>".
                     "</optgroup>".
                 "</select>";
-            echo '<table border="1" align="Center"><tr><td>Diák</td><td>'.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($UN)."' LIMIT 1"), 0, "real_name").'</td></tr>'.
+            echo '<table border="1" align="Center" class="tablee"><tr><td>Diák</td><td>'.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($UN)."' LIMIT 1"), 0, "real_name").'</td></tr>'.
                 (!$TYPE?'<tr><td>Tanár</td><td>'.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($U)."' LIMIT 1"), 0, "real_name").'</td></tr>':'').
                 '<tr><td>Leírás</td><td><input id="EditDescription" placeholder="Leírás" value="'.$RN.'" /></td></tr>'.
                 (!$TYPE?'<tr><td>Dátum</td><td><input id="EditDate" type="Date" min="'.date("Y-m-d",$_FROM_DATE).'" max="'.date("Y-m-d",$_TO_DATE).'" placeholder="Dátum (ÉÉÉÉ-HH-NN)" value="'.$P.'" /></td></tr>':'').
@@ -1155,7 +1155,7 @@ switch((int)$_POST["TYPE"])
             else{
             $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE id='".mysql_real_escape_string($_POST["Id"])."'");
             while($row2=mysql_fetch_array($ADAT)) {
-                echo '<table border="1" align="Center">'.
+                echo '<table border="1" align="Center" class="tablee">'.
                     '<tr><td>Hét napja</td><td><select id="EditT_Day" onChange="$(\'#EditT_Lesson_Number\').val(1);"><option value="-">-Törlés-</option>';
                     for($i=1; $i<=7; $i++)
                         echo '<option value="'.$i.'"'.($row2["dayn"]==$i?" SELECTED":"").'>'.iconv('iso-8859-2','utf-8',strftime("%A",strtotime(date("l",mktime(0,0,0,7,$i,2013))))).'</option>';
