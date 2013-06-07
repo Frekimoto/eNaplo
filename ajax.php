@@ -274,10 +274,10 @@ switch((int)$_POST["TYPE"])
                             <td>Tanulók</td>
                             <?php
                             if(count($HEAD)==0)
-                                echo "<td rowspan='100%'>Nincs érdemjegy</td>";
+                                echo "<td rowspan='100%' class=\"EditTd2\">Nincs érdemjegy</td>";
                                 else
                                 foreach($HEAD as $text)
-                                    echo "<td>".ucfirst($text)."</td>";
+                                    echo "<td class=\"EditTd2\">".ucfirst($text)."</td>";
 							$HALF=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND $_SYSTEM_GARDES_TABLE.typ='8'"));
                             $END=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE, $_SYSTEM_GARDES_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_GARDES_TABLE.uid AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.lesson='".$LESSON."' AND $_SYSTEM_USERS_TABLE.class='".$ID."' AND $_SYSTEM_GARDES_TABLE.typ='9'"));
                             if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4) {
@@ -285,9 +285,9 @@ switch((int)$_POST["TYPE"])
                                 $END+=1;
                             }
                             if($HALF!=0 or $END!=0)
-                                echo '<td rowspan="100%" width="10px"></td>'.($HALF==0?"":"<td>Félév</td>").($END==0?"":"<td>Év vége</td>");
+                                echo '<td rowspan="100%" width="10px" class="EditTd2"></td>'.($HALF==0?"":"<td class=\"EditTd2\">Félév</td>").($END==0?"":"<td class=\"EditTd2\">Év vége</td>");
                             ?>
-                            <td rowspan="100%" width="10px"></td>
+                            <td rowspan="100%" width="10px" class="EditTd2"></td>
                             <td class="EditTd">
                                 <select onChange="$('.Type').val($(this).val());">
                                     <optgroup label="Tipus">
@@ -316,7 +316,7 @@ switch((int)$_POST["TYPE"])
                             </td>
                             <td class="EditTd"><input type="Text" placeholder="Leírás" onKeyUp="$('.Description').val($(this).val());"/></td>
                             <td class="EditTd"><input type="Date" class="Date" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" placeholder="Dátum (ÉÉÉÉ-HH-NN)" value="<?php echo date("Y-m-d"); ?>" onChange="$('.Date').val($(this).val());"/></td>
-                            <td>Átlag</td>
+                            <td class="EditTd2">Átlag</td>
                         </tr>
                     <?php
                     $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE".($_SESSION["RANK"]==3?" tid='".$_SESSION["ID"]."' AND":"")." lesson='".$LESSON."'");
@@ -334,7 +334,7 @@ switch((int)$_POST["TYPE"])
                                 }
                             foreach($HEAD as $text)
                                 {
-                                echo "<td>";
+                                echo "<td class=\"EditTd2\">";
                                 foreach($GARDES as $text2)
                                 if(iconv('iso-8859-2','utf-8',strftime("%B",strtotime($text2["added"])))==$text and $text2["added"]!=8 and $text2["added"]!=9)
                                         {
@@ -355,7 +355,7 @@ switch((int)$_POST["TYPE"])
                                 echo "</td>";
                                 }
                             $NUMBER=mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ!='8' AND typ!='9'"))>1?1:0;
-                            echo ($HALF==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td>".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
+                            echo ($HALF==0?"":"<td class=\"EditTd2\">".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='8'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'8\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>").($END==0?"":"<td class=\"EditTd2\">".(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"))==1?(($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "id").'\'},function(data){$(\'#EditGarde\').html(data);});">':"").mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$row["uid"]."' AND lesson='".$LESSON."' AND typ='9'"), 0, "description").($NUMBER?"</a>":"")):($NUMBER?'<a href="javascript:void(0);" style="text-decoration: none;" onClick="$.post(\'ajax.php\',{TYPE: 14, Id: \''.$row["uid"].'\', Type: \''.$LESSON.'\', Value: \'9\'},function(data){$(\'#EditGarde\').html(data);});">-</a>':"-"))."</td>");
                             ?>
                             <td class="EditTd">
                                 <select class="Type" name="<?php echo $row["uid"]; ?>_TYPE">
@@ -386,11 +386,9 @@ switch((int)$_POST["TYPE"])
                             <td class="EditTd"><input type="Text" placeholder="Leírás" class="Description" name="<?php echo $row["uid"]; ?>_DES"/></td>
                             <td class="EditTd"><input type="Date" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" class="Date" placeholder="Dátum (ÉÉÉÉ-HH-NN)" value="<?php echo date("Y-m-d"); ?>" name="<?php echo $row["uid"]; ?>_DAT"/></td>
                             <?php
-                            echo "<td>".(($s==0)?"-":(sprintf("%01.2f", $n/$s)." ~(".round($n/$s).")"))."</td></tr>";
+                            echo "<td class=\"EditTd2\">".(($s==0)?"-":(sprintf("%01.2f", $n/$s)." ~(".round($n/$s).")"))."</td></tr>";
                             }
-                    echo '<tr><td colspan="'.(count($HEAD)+1).'"></td>'.($HALF==0?($END!=0?'<td></td>':''):'<td'.($END!=0?' colspan="2"':'').'></td>').'<td colspan="4" class="EditTd"><input type="Button" value="Hozzáadás" onClick="$.post(\'ajax.php\',{TYPE: 8, Data: $(\'#NewGardesForm\').serialize(), Type: \''.$LESSON.'\'}); $.post(\'ajax.php\',{TYPE: 3, Id: \''.$ID.'\', Type: \''.$LESSON.'\', Data: 1},function(data){$(\'#Gardes\').html(data);});"/></td><td><a href="javascript:void(0);" onClick="$(\'.EditTd\').toggle();">Szerkesztő</a></td></tr></table></form><br /><div id="EditGarde"></div>';
-                    if(isset($_POST["Data"]))
-                        echo '<script>$(\'.EditTd\').show(\'fast\');</script>';
+                    echo '<tr><td colspan="'.(count($HEAD)+1).'" class="EditTd2"></td>'.($HALF==0?($END!=0?'<td class="EditTd2"></td>':''):'<td'.($END!=0?' colspan="2" class="EditTd2"':'').'></td>').'<td colspan="1" class="EditTd"></td><td colspan="3" class="EditTd"><input type="Button" value="Hozzáadás" onClick="$.post(\'ajax.php\',{TYPE: 8, Data: $(\'#NewGardesForm\').serialize(), Type: \''.$LESSON.'\'}); $.post(\'ajax.php\',{TYPE: 3, Id: \''.$ID.'\', Type: \''.$LESSON.'\', Data: 1},function(data){$(\'#Gardes\').html(data);});"/></td><td><a href="javascript:void(0);" onClick="$(\'.EditTd,.EditTd2\').toggle();">Szerkesztő</a></td></tr></table></form><br /><div id="EditGarde"></div>'."<script>".(isset($_POST["Data"])?"$('.EditTd').show();":"")." if($('.EditTd').is(':visible'))$('.EditTd2').hide();</script>";
                     }
                 }
         break;
