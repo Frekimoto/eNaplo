@@ -78,7 +78,7 @@ Táblázat design
     background: black;
     color: white;
 }
-.tablee tr:nth-child(odd) input[type="button"], .tablee tr:nth-child(odd) input[type="submit"]{
+.tablee tr:nth-child(odd) input[type="button"]{
     background: white;
     color: black;
 }
@@ -117,7 +117,7 @@ tr.tnaplo:nth-child(odd) input[type="button"]{
     background: white;
     color: black;
 }
-tr.tnaplo:nth-child(odd) input[type="button"]:disabled{
+tr.tnaplo:nth-child(odd) input:disabled{
     background: gray;
     color: black;
 }
