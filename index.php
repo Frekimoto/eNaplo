@@ -206,7 +206,7 @@ if($_SESSION["ID"]!=-1)
                 <div id="Login_Error" class="Error"><?php echo $_LE; ?></div>
                 <label for="Login_Username">Felhasználónév: </label><input type="Text" id="Login_Username" name="Login_Username" value="" autofocus="autofocus" autocomplete="off" placeholder="Felhasználónév" class="required"></input><br />
                 <label for="Login_Password">Jelszó: </label><input type="Password" id="Login_Password" name="Login_Password" value="" autocomplete="off" placeholder="Jelszó" class="required"></input><br />
-                <input type="Submit" value="Bejelentkezés" onClick="Login(); return false;"/>
+                <input type="Button" value="Bejelentkezés" onClick="Login(); return false;"/>
                 </form>
             </div>
         <?php }else{ ?>
@@ -247,7 +247,7 @@ if($_SESSION["ID"]!=-1)
             <input placeholder="Eddig az óráig" name='To'/>
             <input type="Date" name="Dat" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" placeholder="Dátum (ÉÉÉÉ-HH-NN)"/>
             <input type="Date" name="Dat2" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" placeholder="Dátum (ÉÉÉÉ-HH-NN)"/>
-            <input type="Submit" value="Hozzáad" name="NewCertificate">
+            <input type="Button" value="Hozzáad" name="NewCertificate">
             </form>
             <?php } ?>
             </div>
@@ -441,8 +441,8 @@ if($_SESSION["ID"]!=-1)
             </div>
 			<div id="Exit" style="display: none;">
 				<h3>Kilépés megerősítése.<br />Biztosan kilépsz?</h3>
-				<input type="Submit" value="Maradok" onClick="$('#Exit').hide('fast');" />
-				<input type="Submit" value="Kilépek" onClick="location.href='?exit';" />
+				<input type="Button" value="Maradok" onClick="$('#Exit').hide('fast');" />
+				<input type="Button" value="Kilépek" onClick="location.href='?exit';" />
 			</div>
 			</div>
         <?php } ?>
