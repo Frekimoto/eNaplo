@@ -19,6 +19,6 @@ mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `from`  `fromd`
 mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `to`  `tod` DATE NOT NULL ;");
 mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `day`  `dayn` ENUM(  '1',  '2',  '3',  '4',  '5',  '6',  '7' ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  '1';");
 mysql_query("ALTER TABLE ".$_SYSTEM_TIMETABLE_TABLE." DROP INDEX day;");
-mysql_query("ALTER TABLE  `".$_SYSTEM_GARDES_TABLE."` CHANGE  `typ`  `typ` ENUM(  '1',  '2',  '3',  '4',  '5',  '6',  '7',  '8',  '9',  '10',  '11',  '12', '13',  '14' ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT  '1';");
+mysql_query("ALTER TABLE  `".$_SYSTEM_TIMETABLE_TABLE."` CHANGE  `typ`  `typ` INT( 11 ) NOT NULL DEFAULT  '1';");
 ?>
 Megtettem amit lehetett :)

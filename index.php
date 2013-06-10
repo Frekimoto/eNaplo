@@ -201,21 +201,24 @@ if($_SESSION["ID"]!=-1)
     </head>
         <?php if($_SESSION["ID"]==-1) { ?>
             <h3>Azonosítás</h3>
-            <div id="Login_Div" class="login">
-                <form action="index.php" method="POST">
-                <div id="Login_Error" class="Error"><?php echo $_LE; ?></div>
-                <label for="Login_Username">Felhasználónév: </label><input type="Text" id="Login_Username" name="Login_Username" value="" autofocus="autofocus" autocomplete="off" placeholder="Felhasználónév" class="required"></input><br />
-                <label for="Login_Password">Jelszó: </label><input type="Password" id="Login_Password" name="Login_Password" value="" autocomplete="off" placeholder="Jelszó" class="required"></input><br />
-                <input type="Button" value="Bejelentkezés" onClick="Login(); return false;"/>
-                </form>
-            </div>
+			<div class="Menu">  </div>
+			<div class="container">
+				<div id="Login_Div" class="login">
+					<form action="index.php" method="POST">
+					<div id="Login_Error" class="Error"><?php echo $_LE; ?></div>
+					<label for="Login_Username">Felhasználónév: </label><input type="Text" id="Login_Username" name="Login_Username" value="" autofocus="autofocus" autocomplete="off" placeholder="Felhasználónév" class="required"></input><br />
+					<label for="Login_Password">Jelszó: </label><input type="Password" id="Login_Password" name="Login_Password" value="" autocomplete="off" placeholder="Jelszó" class="required"></input><br />
+					<input type="Button" value="Bejelentkezés" onClick="Login(); return false;"/>
+					</form>
+				</div>
+			</div>
         <?php }else{ ?>
             <h1>Üdvözlünk <i><?php echo $_SESSION["REAL_NAME"]; ?></i>!</h1>
             <div class="Menu"><a href="javascript:void(0);" onClick="<?php if($_SESSION["RANK"]==1 or $_SESSION["RANK"]==2)echo '$.post(\'ajax.php\',{TYPE: 2},function(data){$(\'#Content\').html(data);});'; ?> $('#Content').toggle('fast'); $('#Other_Manager,#Profile_Manager,#Timetable,#Notes,#Exit').hide('fast');">Napló</a>  <a href="javascript:void(0);" onClick="$('#Notes').toggle('fast'); $('#Timetable,#Content,#Other_Manager,#Profile_Manager,#Exit').hide('fast');">Jegyzőkönyv</a> <a href="javascript:void(0);" onClick="$('#Timetable').toggle('fast'); $('#Content,#Other_Manager,#Profile_Manager,#Notes,#Exit').hide('fast');">Órarend</a><?php if($_SESSION["RANK"]!=4){ ?> <a href="javascript:void(0);" onClick="$('#Profile_Manager').toggle('fast'); $('#Content,#Other_Manager,#Timetable,#Notes,#Exit').hide('fast');">Profil</a><?php }else{ ?> <a href="javascript:void(0);" onClick="$('#Other_Manager').toggle('fast'); $('#Content,#Profile_Manager,#Timetable,#Notes,#Exit').hide('fast');">Egyéb</a><?php } ?> <a href="javascript:void(0);" onClick="$('#Exit').toggle('fast'); $('#Content,#Other_Manager,#Timetable,#Notes,#Profile_Manager').hide('fast');">Kilépés</a></div><br />
 			<div class="container">
             <div id="Notes" style="display: none;">
             <?php
-            if(isset($_POST["NewCertificate"]) and isset($_POST["ID"]) and  ($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4))
+            if(isset($_POST["ID"]) and  ($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4))
                 {
                 mysql_query("INSERT `$_SYSTEM_DELAY_TABLE` (`id`, `uid`, `tid`, `typ`, `description`, `delay`, `fromc`, `toc`, `fromdate`, `todate`) VALUES ( NULL, '".mysql_real_escape_string($_POST["ID"])."', '".mysql_real_escape_string($_SESSION["ID"])."', '".mysql_real_escape_string($_POST["Type"])."', '".mysql_real_escape_string(isset($_POST["Desc"])?$_POST["Desc"]:0)."', '".mysql_real_escape_string($_POST["Value"])."', '".mysql_real_escape_string($_POST["From"])."', '".mysql_real_escape_string($_POST["To"])."', '".mysql_real_escape_string($_POST["Dat"])."', '".mysql_real_escape_string($_POST["Dat2"])."')");
                 echo "<script>location.href='index.php';</script>";
@@ -229,7 +232,7 @@ if($_SESSION["ID"]!=-1)
                 }
             if($_SESSION["RANK"]==3 or $_SESSION["RANK"]==4)
                 {
-                echo "<form action='index.php' method='post'><select name='ID'>";
+                echo "<form id='SF' action='index.php' method='post'><select name='ID'>";
                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' ORDER BY real_name ASC");
                 while($row=mysql_fetch_array($ADAT))
                     echo "<option value='".$row["id"]."'>".$row["real_name"]."</option>\n";
@@ -247,7 +250,7 @@ if($_SESSION["ID"]!=-1)
             <input placeholder="Eddig az óráig" name='To'/>
             <input type="Date" name="Dat" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" placeholder="Dátum (ÉÉÉÉ-HH-NN)"/>
             <input type="Date" name="Dat2" min="<?php echo date("Y-m-d",$_FROM_DATE); ?>" max="<?php echo date("Y-m-d",$_TO_DATE); ?>" placeholder="Dátum (ÉÉÉÉ-HH-NN)"/>
-            <input type="Button" value="Hozzáad" name="NewCertificate">
+            <input type="Button" value="Hozzáad" onClick="$('#SF').submit();" name="NewCertificate">
             </form>
             <?php } ?>
             </div>

@@ -63,12 +63,13 @@ if(isset($_GET["b"]))
 		</table><br />
 		<table align="Center" width="80%">
 			<tr>
-				<td align="Center" width="40%"><b>Tantárgy</b></td>
-				<td align="Center" width="40%"><b>Érdemjegy</b></td>
+				<td align="Center" width="60%"><b>Tantárgy</b></td>
+				<td align="Center" width="20%"><b>Érdemjegy</b></td>
 				<?php
 				foreach($LESSONS as $text)
 					if($text!="")
-						echo "<tr><td align=\"Center\" width=\"40%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name")."</td><td  align=\"Center\" width=\"40%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
+						echo "<tr><td align=\"Center\" width=\"60%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_LESSONS_TABLE WHERE id='".$text."'"), 0, "name").
+						"</td><td  align=\"Center\" width=\"20%\">".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$id."' AND lesson='".$text."' AND typ='".(isset($_GET["firsthalf"])?"8":"9")."'"), 0, "description")."</td></tr>";
 				?>
 			</tr>
 		</table><br />
@@ -140,7 +141,7 @@ switch((int)$_POST["TYPE"])
         $HEAD=array("Órák");
         $LESSONS=array();
         $GARDES=array();
-        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ!='8' AND typ!='9' ORDER BY added ASC");
+        $ADAT=mysql_query("SELECT * FROM $_SYSTEM_GARDES_TABLE WHERE uid='".$ID."' AND typ<'8' ORDER BY added ASC");
         while($row=mysql_fetch_array($ADAT))
             {
             $row["tid"]=mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".$row["tid"]."'"), 0, "real_name");
@@ -883,7 +884,7 @@ switch((int)$_POST["TYPE"])
                         echo "A kiválasztott felhasználónak (".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE id='".mysql_real_escape_string($ID)."' LIMIT 1"), 0, "real_name").") még nincs órarend megadva a következő időközre: ".date("Y-m-d",$DATE)." - ".date("Y-m-d",$DATEEND);
                         break;
                      case 2: case 3:
-                        echo "A kiválasztott osztálynak (".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($ID)."' LIMIT 1"), 0, "name").") még nincs órarend megadva a következő időközre: ".date("Y-m-d",$DATE)." - ".date("Y-m-d",$DATEEND);
+                        echo "A kiválasztott osztálynak (".mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".mysql_real_escape_string($CLASS)."' LIMIT 1"), 0, "name").") még nincs órarend megadva a következő időközre: ".date("Y-m-d",$DATE)." - ".date("Y-m-d",$DATEEND);
                         break;
                     default:
                         echo "Hiba a helyválasztásban.";
