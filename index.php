@@ -63,8 +63,8 @@ if($_SESSION["ID"]!=-1)
             ?>
             $.post('ajax.php',{TYPE: 2},function(data){$('#Content').html(data);});
             <?php }else{
-            if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
-                echo '$.post(\'ajax.php\',{TYPE: 3, '.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$_SESSION["CLASS"]."'"))>0?'Type: '.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":"")),0,"id").', ':'').'Id: '.($_SESSION["CLASS"]!=0?$_SESSION["CLASS"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC"),0,"id")).'},function(data){$(\'#Gardes\').html(data);});';
+            if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
+                echo '$.post(\'ajax.php\',{TYPE: 3, '.(mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TIMETABLE_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND $_SYSTEM_USERS_TABLE.class='".$_SESSION["CLASS"]."'"))>0?'Type: '.mysql_result(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE".($_SESSION["RANK"]==3?" WHERE tid='".$_SESSION["ID"]."'":"")),0,"id").', ':'').'Id: '.($_SESSION["CLASS"]!=0?$_SESSION["CLASS"]:mysql_result(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE ORDER BY name ASC"),0,"id")).'},function(data){$(\'#Gardes\').html(data);});';
             if($_SESSION["RANK"]==4) { ?>
             $.post('ajax.php',{TYPE: 9},function(data){$('#User_Content').html(data);});
             Timetable_Input();
@@ -166,10 +166,11 @@ if($_SESSION["ID"]!=-1)
             function Timetable_Input() {
                 Message('',0,'Timetable_Error');
                 $('.Bracket,#Timetable_Manager_Content,#TStudent,#TClass').show();
+				$('.Bracket').hide();
                 
-                if($('#NewT_Class option').length==1 && $('#NewT_Student option').length==1) {
+                if($('#NewT_Class option').length==1) { //&& $('#NewT_Student option').length==1
                    $('#Timetable_Manager_Content').hide();
-                   Message('Adjon meg egy osztályt, vagy egy tanulót.',0,'Timetable_Error');
+                   Message('Adjon meg egy osztályt',0,'Timetable_Error'); //, vagy egy tanulót.
                    return false;  
                 }
                 if($('#NewT_Class option').length==1)
@@ -372,7 +373,7 @@ if($_SESSION["ID"]!=-1)
                     <label for="NewT_Lesson_Number">Óra száma:</label> <input type="number" id="NewT_Lesson_Number" maxlength="2" size="2" max="15" min="0" value="1" /><br />
                     <p class="Bracket" style="display: inline;">(</p>
                     <p id="TStudent" style="display: inline;">
-                        <label for="NewT_Student">Tanuló:</label> <select id="NewT_Student" onChange="$('#NewT_Class').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
+                        <label for="NewT_Student" style="display: none;">Tanuló:</label> <select style="display: none;" id="NewT_Student" onChange="$('#NewT_Class').each(function(){$(this).val($('option:first',this).val());}); if($('#NewT_Teacher option:selected').val()!='' && $('#NewT_From').val()!='' && $('#NewT_Lesson option:selected').val()!='' && ($('#NewT_Student option:selected').val()!='' || $('#NewT_Class option:selected').val()!=''))$('#NewT_Button').attr('disabled',false); else $('#NewT_Button').attr('disabled',true);">
                             <option value="">-Válassz-</option>
                             <?php
                                 $ADAT=mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' ORDER BY real_name ASC");
@@ -415,7 +416,7 @@ if($_SESSION["ID"]!=-1)
                 if($_SESSION["RANK"]!=3 and $_SESSION["RANK"]!=4)
                     echo "Kis türelmet...";
                         else{
-                        if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
+                        if(((mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE WHERE tid='".$_SESSION["ID"]."'"))>0 or mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE id='".$_SESSION["CLASS"]."'"))==1) and $_SESSION["RANK"]==3) or ($_SESSION["RANK"])==4 and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE"))>0)
                             {
                             echo '<select id="Edit_Gardes" onChange="$.post(\'ajax.php\',{TYPE: 3, Id: $(\'#Edit_Gardes :selected\').val()},function(data){$(\'#Gardes\').html(data);});"><optgroup label="Válassz osztályt!">';
                             if($_SESSION["RANK"]==4)
@@ -425,7 +426,7 @@ if($_SESSION["ID"]!=-1)
                                     echo "<option value='".$row["id"]."'".(($_SESSION["CLASS"]==$row["id"])?" SELECTED":"").">".$row["name"]." (".mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_USERS_TABLE WHERE rank='1' AND class='".$row["id"]."'"))." fő)</option>\n";
                                 }else{
                                 $CLASSES=array();
-                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TEACHES_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TEACHES_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND tid='".$_SESSION["ID"]."'");
+                                $ADAT=mysql_query("SELECT * FROM $_SYSTEM_TIMETABLE_TABLE, $_SYSTEM_USERS_TABLE WHERE $_SYSTEM_TIMETABLE_TABLE.uid=$_SYSTEM_USERS_TABLE.id AND tid='".$_SESSION["ID"]."'");
                                 while($row=mysql_fetch_array($ADAT))
                                     if(!in_array($row["class"],$CLASSES) and mysql_num_rows(mysql_query("SELECT * FROM $_SYSTEM_CLASSES_TABLE WHERE enabled='1' AND id='".$row["class"]."'"))==1)
                                         {
