@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."gardes` (
   `description` varchar(100) NOT NULL,
   `garde` enum('-','1','2','3','4','5') NOT NULL,
   `lesson` bigint(20) NOT NULL,
-  `typ` enum('1','2','3','4','5','6','7','8','9') NOT NULL DEFAULT '1',
+  `typ` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
@@ -81,16 +81,6 @@ CREATE TABLE IF NOT EXISTS `".$Prefix."lessons` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) NOT NULL,
   `enabled` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS `".$Prefix."teaches`;
-CREATE TABLE IF NOT EXISTS `".$Prefix."teaches` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `tid` bigint(20) NOT NULL,
-  `uid` bigint(20) NOT NULL,
-  `class` bigint(20) NOT NULL,
-  `lesson` bigint(20) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
