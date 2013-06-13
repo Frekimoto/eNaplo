@@ -23,9 +23,13 @@ Menü dízájn
 background: black;
 margin-left: 2%;
 margin-right: 2%;
-padding: 10px;
+padding-top: 1px;
+padding-bottom: 1px;
 border-radius: 30px 30px 0px 0px; 
 box-shadow: 0px 0px 15px rgba(0,0,0,0.7);
+}
+.Menu h3{
+color: white;
 }
 .Menu a{ 
 text-decoration: none;
@@ -55,8 +59,57 @@ div.footer a {
     color: white;
 }
 /**
-Táblázat design
+Timetable táblázat design
 */
+.tablee{
+    border: 1px solid black;
+    border-radius: 3px;
+    border-collapse: collapse;
+	color: white;
+}
+.timetablee td, .timetablee td{
+    border: none;
+}
+.timetablee a, a:visited{
+	color: black;
+	text-decoration: none;
+}
+.timetablee tr:first-child td{
+	background:black;
+	color: white;
+	font-weight: bold;
+	padding: 2px;	
+}
+.timetablee td{
+    border-left: 1px solid white;
+}
+.timetablee tr:nth-child(even){
+    background: grey;
+    color: white;
+}
+.timetablee tr:nth-child(odd){
+    background: black;
+    color: white;
+}
+.timetablee tr:nth-child(odd) a, .timetablee tr:nth-child(odd) a:visited{
+    color: white;
+}
+.timetablee tr:nth-child(odd) input[type="button"]{
+    background: white;
+    color: black;
+}
+.timetablee tr:hover{
+	background: #DFDED9;
+	color: black;
+}
+.timetablee tr:hover tr:first-child{
+	background: black;
+	color: black;
+}
+.timetablee tr:hover a{
+	color: black;
+}
+/**Other táblázat*/
 .tablee{
     border: 1px solid black;
     border-radius: 3px;

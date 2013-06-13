@@ -933,7 +933,7 @@ switch((int)$_POST["TYPE"])
                 }
             sort($HEAD);
             ?>
-            <table border="1" align="center" class="tablee">
+            <table border="1" align="center" class="timetablee">
                 <tr><td>Óra/Nap</td><?php for($i=0; $i<count($HEAD); $i++)echo "<td>".ucfirst(iconv('iso-8859-2','utf-8',strftime("%A",strtotime('+'.$HEAD[$i].' day', strtotime('next Sunday')))))."</td>"; ?></tr>
                 <?php
                 for($i=$NMI; $i<=$NMA; $i++)
@@ -944,7 +944,7 @@ switch((int)$_POST["TYPE"])
                         $Des="";
                         foreach($DATES as $array)
                             if($array["dayn"]==$HEAD[$a] and $array["number"]==$i)
-                                $Des.=($_SESSION["RANK"]==4?"<a href=\"javascript:void(0);\" onClick=\"\$.post('ajax.php',{TYPE: 16, Id: '".$array["id"]."'},function(data){\$('#EditTimetable').html(data);});\" style=\"color: black; text-decoration: none;\">".$array["description"]."</a>":$array["description"]);
+                                $Des.=($_SESSION["RANK"]==4?"<a href=\"javascript:void(0);\" onClick=\"\$.post('ajax.php',{TYPE: 16, Id: '".$array["id"]."'},function(data){\$('#EditTimetable').html(data);});\" style=\"\">".$array["description"]."</a>":$array["description"]);
                         echo "<td".(($Des=="" and $_SESSION["RANK"]==4)?" onClick=\"\$('#Other_Manager').show('fast'); \$('#NewT_Day option[value=\'".($a+1)."\'],#NewT_Class option[value=\'".($TYPE==2?$ID:"")."\'],#NewT_Student option[value=\'".($TYPE==3?$ID:"")."\'],#NewT_Lesson option[value=\'\'],#NewT_Teacher option[value=\'".($TYPE==1?$ID:"")."\']').attr('selected', 'selected'); \$('#NewT_Lesson_Number').val('".$i."'); \$('#NewT_From').val('".date("Y-m-d")."'); \$('#NewT_To').val('0000-00-00'); \$('#Timetable_Manager').show('fast'); \$('#Timetable').hide('fast'); \$('#Lesson_Manager').hide('fast'); $('#User_Manager').hide('fast'); \$('#Class_Manager').hide('fast');\"":"").">".$Des."</td>";
                         }
                     echo"</tr>";

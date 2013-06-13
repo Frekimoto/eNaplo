@@ -201,8 +201,8 @@ if($_SESSION["ID"]!=-1)
         </script>
     </head>
         <?php if($_SESSION["ID"]==-1) { ?>
-            <h3>Azonosítás</h3>
-			<div class="Menu">  </div>
+            <h1>e-Napló</h1>
+			<div class="Menu"><h3>Azonosítás</h3></div>
 			<div class="container">
 				<div id="Login_Div" class="login">
 					<form action="index.php" method="POST">
